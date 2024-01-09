@@ -38,3 +38,5 @@ chown -R clash:clash /etc/clash
 - 7893: redir
 - 7894: tproxy
 - 5355: dns
+- fake-ip 模式
+- 不用开 tun
