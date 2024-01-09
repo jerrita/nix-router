@@ -1,0 +1,78 @@
+#!/usr/sbin/nft -f
+
+define ncn_list = {
+    198.18.0.0/16,
+    8.8.8.8/32,
+    1.1.1.1/32,
+    91.108.4.0/22,
+    91.108.8.0/22,
+    91.108.12.0/22,
+    91.108.16.0/22,
+    91.108.20.0/22,
+    91.108.56.0/22,
+    91.108.192.0/22,
+    149.154.160.0/20,
+    185.76.151.0/24,
+}
+
+table inet global {
+    flowtable f {
+        hook ingress priority 0;
+        devices = { ppp0, lan };
+    }
+
+    chain input {
+        type filter hook input priority filter; policy drop;
+
+        iifname lo accept
+        iifname lan counter accept
+
+        # iifname ppp0 udp dport { 546, 547 } accept  # IPv6 PD
+        ip6 nexthdr icmpv6 icmpv6 type nd-router-solicit counter accept
+        ip6 nexthdr icmpv6 icmpv6 type nd-router-advert counter accept
+        udp dport dhcpv6-client udp sport dhcpv6-server counter accept comment "IPv6 DHCP"
+        ct state { established, related } counter accept
+        iifname ppp0 counter drop
+    }
+
+    chain forward {
+        type filter hook forward priority filter; policy drop;
+        # clamp MSS to PMTU
+        tcp flags syn tcp option maxseg size set rt mtu
+        # ip6 nexthdr tcp tcp flags syn tcp option maxseg size set rt mtu
+
+        ip protocol { tcp, udp } flow offload @f
+        ip6 nexthdr { tcp, udp } flow offload @f
+
+        iifname lan counter accept comment "Allow lan -> *"
+        iifname ppp0 oifname lan ct state { established, related } counter accept comment "Allow established back to lan"
+        iifname ppp0 oifname lan counter drop
+    }
+
+    chain postrouting {
+        type nat hook postrouting priority filter; policy accept;
+        ip saddr 192.168.5.0/24 oifname ppp0 counter masquerade
+    }
+}
+
+
+table ip clash {
+    chain prerouting {
+        type nat hook prerouting priority filter; policy accept;
+        meta skuid clash counter return
+        ip daddr $ncn_list tcp dport 1-65535 counter redirect to :7893 comment "!chnroute -> clash (tcp)"
+        ip daddr $ncn_list udp dport 1-65535 meta mark set 0x233 tproxy to :7894 counter accept comment "!chnroute -> clash (udp)"
+    }
+
+    chain output {
+        type nat hook output priority mangle; policy accept;
+        meta skuid clash counter return
+        ip daddr $ncn_list tcp dport 1-65535 counter redirect to :7893 comment "!chnroute -> clash (tcp) [local]"
+        ip daddr $ncn_list udp dport 1-65535 meta mark set 0x233 counter comment "!chnroute -> clash (udp) [local]"
+    }
+
+    chain divert {
+        type filter hook prerouting priority mangle; policy accept;
+        ip protocol tcp socket transparent 1 meta mark set 0x233 counter accept
+    }
+}

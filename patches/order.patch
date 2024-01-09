@@ -1,0 +1,48 @@
+From a7e36ea887dca7a30ede697cab202b501b153316 Mon Sep 17 00:00:00 2001
+From: Jerrita Wang <je5r1ta@outlook.com>
+Date: Tue, 9 Jan 2024 14:32:22 +0800
+Subject: [PATCH] change nft's order && delay dhcpcd
+
+---
+ nixos/modules/services/networking/dhcpcd.nix   | 5 +++--
+ nixos/modules/services/networking/nftables.nix | 4 ++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/nixos/modules/services/networking/dhcpcd.nix b/nixos/modules/services/networking/dhcpcd.nix
+index 8b6d3fc55f3e41..e86bd236ab362b 100644
+--- a/nixos/modules/services/networking/dhcpcd.nix
++++ b/nixos/modules/services/networking/dhcpcd.nix
+@@ -227,8 +227,8 @@ in
+       { description = "DHCP Client";
+ 
+         wantedBy = [ "multi-user.target" ] ++ optional (!hasDefaultGatewaySet) "network-online.target";
+-        wants = [ "network.target" ];
+-        before = [ "network-online.target" ];
++        wants = [ "network-online.target" ];
++        after = [ "network-online.target" ];
+ 
+         restartTriggers = [ exitHook ];
+ 
+@@ -245,6 +245,7 @@ in
+           { Type = "forking";
+             PIDFile = "/run/dhcpcd/pid";
+             RuntimeDirectory = "dhcpcd";
++            ExecStartPre = "${pkgs.coreutils}/bin/sleep 5";
+             ExecStart = "@${dhcpcd}/sbin/dhcpcd dhcpcd --quiet ${optionalString cfg.persistent "--persistent"} --config ${dhcpcdConf}";
+             ExecReload = "${dhcpcd}/sbin/dhcpcd --rebind";
+             Restart = "always";
+diff --git a/nixos/modules/services/networking/nftables.nix b/nixos/modules/services/networking/nftables.nix
+index 424d005dc0b5ef..93af972a76cb94 100644
+--- a/nixos/modules/services/networking/nftables.nix
++++ b/nixos/modules/services/networking/nftables.nix
+@@ -252,8 +252,8 @@ in
+     networking.nftables.flushRuleset = mkDefault (versionOlder config.system.stateVersion "23.11" || (cfg.rulesetFile != null || cfg.ruleset != ""));
+     systemd.services.nftables = {
+       description = "nftables firewall";
+-      before = [ "network-pre.target" ];
+-      wants = [ "network-pre.target" ];
++      after = [ "network.target" ];
++      wants = [ "network.target" ];
+       wantedBy = [ "multi-user.target" ];
+       reloadIfChanged = true;
+       serviceConfig = let
