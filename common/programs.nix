@@ -19,8 +19,10 @@
         dnsutils
         traceroute
         mtr
+        inetutils
         lsof
         proxychains
+        screenfetch
 
         tmux
         gnumake

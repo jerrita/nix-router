@@ -21,13 +21,15 @@ table inet global {
         devices = { ppp0, lan };
     }
 
+    chain miniupnpd {}
+
     chain input {
         type filter hook input priority filter; policy drop;
 
         iifname lo accept
         iifname lan counter accept
 
-        # iifname ppp0 udp dport { 546, 547 } accept  # IPv6 PD
+        # iifname ppp0 udp dport { 546, 547 } counter accept comment "IPv6 PD"
         ip6 nexthdr icmpv6 icmpv6 type nd-router-solicit counter accept
         ip6 nexthdr icmpv6 icmpv6 type nd-router-advert counter accept
         udp dport dhcpv6-client udp sport dhcpv6-server counter accept comment "IPv6 DHCP"
@@ -37,15 +39,15 @@ table inet global {
 
     chain forward {
         type filter hook forward priority filter; policy drop;
-        # clamp MSS to PMTU
         tcp flags syn tcp option maxseg size set rt mtu
-        # ip6 nexthdr tcp tcp flags syn tcp option maxseg size set rt mtu
 
         ip protocol { tcp, udp } flow offload @f
         ip6 nexthdr { tcp, udp } flow offload @f
 
         iifname lan counter accept comment "Allow lan -> *"
         iifname ppp0 oifname lan ct state { established, related } counter accept comment "Allow established back to lan"
+
+        jump miniupnpd
         iifname ppp0 oifname lan counter drop
     }
 
