@@ -21,7 +21,7 @@ index 64aacaf3504046..116298dc6b1db1 100644
  
 +    ${lib.optionalString (firewall == "nftables") ''
 +      upnp_table_name=global
-+      upnp_nat_table_name=global
++      upnp_nat_table_name=miniupnpd
 +    ''}
 +
      ${cfg.appendConfig}
