@@ -44,10 +44,10 @@ table inet global {
         ip protocol { tcp, udp } flow offload @f
         ip6 nexthdr { tcp, udp } flow offload @f
 
+        jump miniupnpd
+
         iifname lan counter accept comment "Allow lan -> *"
         iifname ppp0 oifname lan ct state { established, related } counter accept comment "Allow established back to lan"
-
-        jump miniupnpd
         iifname ppp0 oifname lan counter drop
     }
 
