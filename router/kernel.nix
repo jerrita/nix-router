@@ -18,8 +18,6 @@
         "net.ipv4.tcp_keepalive_time" = 60;
         "net.ipv4.tcp_keepalive_intvl" = 10;
         "net.ipv4.tcp_keepalive_probes" = 6;
-        "net.ipv4.tcp_mtu_probing" = true;
-        "net.ipv6.tcp_mtu_probing" = true;
 
         # tcp pending
         "net.ipv4.tcp_max_syn_backlog" = 8192;
