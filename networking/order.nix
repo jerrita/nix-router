@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 {
     systemd.services.nftables = {
         wants = lib.mkForce [ "network.target" ];
@@ -6,8 +6,8 @@
         after = [ "network.target" ];
     };
     systemd.services.dhcpcd = {
-        wants = [ "network-online.target" ];
-        after = [ "network-online.target" ];
+        wants = lib.mkForce [ "network-online.target" ];
+        after = lib.mkForce [ "network-online.target" ];
         serviceConfig = {
             ExecStartPre = "${pkgs.coreutils}/bin/sleep 5";
         };
