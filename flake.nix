@@ -26,7 +26,7 @@
         channels.unstable.input = nixpkgs;
         channels.unstable.patches = [
             ./patches/miniupnpd.patch
-            ./patches/order.patch
+            # ./patches/order.patch
         ];
 
         hosts.router = {

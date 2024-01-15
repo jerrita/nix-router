@@ -1,245 +1,47 @@
-From 7bfaf94b1ee4ce08c8d7c8773122e7ae26a084d0 Mon Sep 17 00:00:00 2001
-From: chayleaf <chayleaf-git@pavluk.org>
-Date: Thu, 22 Jun 2023 00:08:31 +0700
-Subject: [PATCH] miniupnpd-nftables: init at 2.3.3
+From 8a48c61c61df574bbda888a5a78dcedc37afc51d Mon Sep 17 00:00:00 2001
+From: jerrita <je5r1ta@icloud.com>
+Date: Mon, 15 Jan 2024 15:43:16 +0800
+Subject: [PATCH] add options for miniupnpd-nftables
 
 ---
- .../modules/services/networking/miniupnpd.nix | 53 +++++++++++++---
- nixos/tests/all-tests.nix                     |  3 +-
- nixos/tests/upnp.nix                          |  5 +-
- pkgs/tools/networking/miniupnpd/default.nix   | 61 ++++++++++++++++---
- pkgs/top-level/all-packages.nix               |  2 +
- 5 files changed, 104 insertions(+), 20 deletions(-)
+ .../modules/services/networking/miniupnpd.nix | 20 +++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
 diff --git a/nixos/modules/services/networking/miniupnpd.nix b/nixos/modules/services/networking/miniupnpd.nix
-index 64aacaf3504046..116298dc6b1db1 100644
+index 116298dc6b1db1..8f55e3ac1b21e8 100644
 --- a/nixos/modules/services/networking/miniupnpd.nix
 +++ b/nixos/modules/services/networking/miniupnpd.nix
-@@ -13,8 +13,17 @@ let
-       listening_ip=${range}
+@@ -14,8 +14,8 @@ let
      '') cfg.internalIPs}
  
-+    ${lib.optionalString (firewall == "nftables") ''
-+      upnp_table_name=global
-+      upnp_nat_table_name=miniupnpd
-+    ''}
-+
+     ${lib.optionalString (firewall == "nftables") ''
+-      upnp_table_name=miniupnpd
+-      upnp_nat_table_name=miniupnpd
++      upnp_table_name=${cfg.upnpTableName}
++      upnp_nat_table_name=${cfg.upnpNatTableName}
+     ''}
+ 
      ${cfg.appendConfig}
-   '';
-+  firewall = if config.networking.nftables.enable then "nftables" else "iptables";
-+  miniupnpd = pkgs.miniupnpd.override { inherit firewall; };
-+  firewallScripts = lib.optionals (firewall == "iptables")
-+    ([ "iptables"] ++ lib.optional (config.networking.enableIPv6) "ip6tables");
- in
- {
-   options = {
-@@ -57,20 +66,50 @@ in
-   };
+@@ -55,6 +55,22 @@ in
+         '';
+       };
  
-   config = mkIf cfg.enable {
--    networking.firewall.extraCommands = ''
--      ${pkgs.bash}/bin/bash -x ${pkgs.miniupnpd}/etc/miniupnpd/iptables_init.sh -i ${cfg.externalInterface}
--    '';
-+    networking.firewall.extraCommands = lib.mkIf (firewallScripts != []) (builtins.concatStringsSep "\n" (map (fw: ''
-+      EXTIF=${cfg.externalInterface} ${pkgs.bash}/bin/bash -x ${miniupnpd}/etc/miniupnpd/${fw}_init.sh
-+    '') firewallScripts));
-+
-+    networking.firewall.extraStopCommands = lib.mkIf (firewallScripts != []) (builtins.concatStringsSep "\n" (map (fw: ''
-+      EXTIF=${cfg.externalInterface} ${pkgs.bash}/bin/bash -x ${miniupnpd}/etc/miniupnpd/${fw}_removeall.sh
-+    '') firewallScripts));
- 
--    networking.firewall.extraStopCommands = ''
--      ${pkgs.bash}/bin/bash -x ${pkgs.miniupnpd}/etc/miniupnpd/iptables_removeall.sh -i ${cfg.externalInterface}
--    '';
-+    networking.nftables = lib.mkIf (firewall == "nftables") {
-+      # see nft_init in ${miniupnpd-nftables}/etc/miniupnpd
-+      tables.miniupnpd = {
-+        family = "inet";
-+        # The following is omitted because it's expected that the firewall is to be responsible for it.
-+        #
-+        # chain forward {
-+        #   type filter hook forward priority filter; policy drop;
-+        #   jump miniupnpd
-+        # }
-+        #
-+        # Otherwise, it quickly gets ugly with (potentially) two forward chains with "policy drop".
-+        # This means the chain "miniupnpd" never actually gets triggered and is simply there to satisfy
-+        # miniupnpd. If you're doing it yourself (without networking.firewall), the easiest way to get
-+        # it to work is adding a rule "ct status dnat accept" - this is what networking.firewall does.
-+        # If you don't want to simply accept forwarding for all "ct status dnat" packets, override
-+        # upnp_table_name with whatever your table is, create a chain "miniupnpd" in your table and
-+        # jump into it from your forward chain.
-+        content = ''
-+          chain miniupnpd {}
-+          chain prerouting_miniupnpd {
-+            type nat hook prerouting priority dstnat; policy accept;
-+          }
-+          chain postrouting_miniupnpd {
-+            type nat hook postrouting priority srcnat; policy accept;
-+          }
++      upnpTableName = mkOption {
++        default = "miniupnpd";
++        type = types.str;
++        description = lib.mdDoc ''
++          upnp_table_name for nftables.
 +        '';
 +      };
-+    };
- 
-     systemd.services.miniupnpd = {
-       description = "MiniUPnP daemon";
-       after = [ "network.target" ];
-       wantedBy = [ "multi-user.target" ];
-       serviceConfig = {
--        ExecStart = "${pkgs.miniupnpd}/bin/miniupnpd -f ${configFile}";
-+        ExecStart = "${miniupnpd}/bin/miniupnpd -f ${configFile}";
-         PIDFile = "/run/miniupnpd.pid";
-         Type = "forking";
-       };
-diff --git a/nixos/tests/all-tests.nix b/nixos/tests/all-tests.nix
-index 30ea7c70026f47..db9a2ffa707117 100644
---- a/nixos/tests/all-tests.nix
-+++ b/nixos/tests/all-tests.nix
-@@ -833,7 +833,8 @@ in {
-   unbound = handleTest ./unbound.nix {};
-   unifi = handleTest ./unifi.nix {};
-   unit-php = handleTest ./web-servers/unit-php.nix {};
--  upnp = handleTest ./upnp.nix {};
-+  upnp.iptables = handleTest ./upnp.nix { useNftables = false; };
-+  upnp.nftables = handleTest ./upnp.nix { useNftables = true; };
-   uptermd = handleTest ./uptermd.nix {};
-   uptime-kuma = handleTest ./uptime-kuma.nix {};
-   usbguard = handleTest ./usbguard.nix {};
-diff --git a/nixos/tests/upnp.nix b/nixos/tests/upnp.nix
-index af7cc1fe24130c..5e135267403bd1 100644
---- a/nixos/tests/upnp.nix
-+++ b/nixos/tests/upnp.nix
-@@ -5,7 +5,7 @@
- # this succeeds an external client will try to connect to the port
- # mapping.
- 
--import ./make-test-python.nix ({ pkgs, ... }:
-+import ./make-test-python.nix ({ pkgs, useNftables, ... }:
- 
- let
-   internalRouterAddress = "192.168.3.1";
-@@ -27,6 +27,7 @@ in
-           networking.nat.enable = true;
-           networking.nat.internalInterfaces = [ "eth2" ];
-           networking.nat.externalInterface = "eth1";
-+          networking.nftables.enable = useNftables;
-           networking.firewall.enable = true;
-           networking.firewall.trustedInterfaces = [ "eth2" ];
-           networking.interfaces.eth1.ipv4.addresses = [
-@@ -82,7 +83,7 @@ in
-       # Wait for network and miniupnpd.
-       router.wait_for_unit("network-online.target")
-       # $router.wait_for_unit("nat")
--      router.wait_for_unit("firewall.service")
-+      router.wait_for_unit("${if useNftables then "nftables" else "firewall"}.service")
-       router.wait_for_unit("miniupnpd")
- 
-       client1.wait_for_unit("network-online.target")
-diff --git a/pkgs/tools/networking/miniupnpd/default.nix b/pkgs/tools/networking/miniupnpd/default.nix
-index 8264b54d28c0e4..74c5bdc2ec6ecd 100644
---- a/pkgs/tools/networking/miniupnpd/default.nix
-+++ b/pkgs/tools/networking/miniupnpd/default.nix
-@@ -1,10 +1,30 @@
- { stdenv, lib, fetchurl, iptables-legacy, libuuid, openssl, pkg-config
--, which, iproute2, gnused, coreutils, gawk, makeWrapper
-+, which, iproute2, gnused, coreutils, gnugrep, gawk, makeWrapper
- , nixosTests
-+, firewall ? "iptables", nftables, libmnl, libnftnl
- }:
- 
- let
--  scriptBinEnv = lib.makeBinPath [ which iproute2 iptables-legacy gnused coreutils gawk ];
-+  scriptBinEnv = lib.makeBinPath {
-+    iptables = [
-+      # needed for dirname in ip{,6}tables_*.sh
-+      coreutils
-+      # used in miniupnpd_functions.sh:
-+      which
-+      iproute2
-+      iptables-legacy
-+      gnused
-+      gnugrep
-+      gawk
-+    ];
-+    nftables = [
-+      # needed for dirname in nft_*.sh & cat in nft_init.sh
-+      coreutils
-+      # used in miniupnpd_functions.sh:
-+      which
-+      nftables
-+    ];
-+  }.${firewall};
- in
- stdenv.mkDerivation rec {
-   pname = "miniupnpd";
-@@ -15,22 +35,42 @@ stdenv.mkDerivation rec {
-     sha256 = "sha256-b9cBn5Nv+IxB58gi9G8QtRvXLWZZePZYZIPedbMMNr8=";
-   };
- 
--  buildInputs = [ iptables-legacy libuuid openssl ];
-+  buildInputs = [ iptables-legacy libuuid openssl ]
-+    ++ lib.optionals (firewall == "nftables") [ libmnl libnftnl ];
-   nativeBuildInputs= [ pkg-config makeWrapper ];
- 
--
-   # ./configure is not a standard configure file, errors with:
-   # Option not recognized : --prefix=
-   dontAddPrefix = true;
-+  configureFlags = [
-+    "--firewall=${firewall}"
-+    # allow using various config options
-+    "--ipv6"
-+    "--leasefile"
-+    "--regex"
-+    "--vendorcfg"
-+    # hardening
-+    "--portinuse"
-+  ];
- 
-   installFlags = [ "PREFIX=$(out)" "INSTALLPREFIX=$(out)" ];
- 
--  postFixup = ''
--    for script in $out/etc/miniupnpd/ip{,6}tables_{init,removeall}.sh
--    do
--      wrapProgram $script --set PATH '${scriptBinEnv}:$PATH'
--    done
--  '';
-+  postFixup = {
-+    # Ideally we'd prefer using system's config.firewall.package here for iptables,
-+    # however for some reason switching --prefix to --suffix breaks the script
-+    iptables = ''
-+      for script in $out/etc/miniupnpd/ip{,6}tables_{init,removeall}.sh
-+      do
-+        wrapProgram $script --prefix PATH : '${scriptBinEnv}:$PATH'
-+      done
-+    '';
-+    nftables = ''
-+      for script in $out/etc/miniupnpd/nft_{delete_chain,flush,init,removeall}.sh
-+      do
-+        wrapProgram $script --suffix PATH : '${scriptBinEnv}:$PATH'
-+      done
-+    '';
-+  }.${firewall};
- 
-   passthru.tests = {
-     bittorrent-integration = nixosTests.bittorrent;
-@@ -42,5 +82,6 @@ stdenv.mkDerivation rec {
-     description = "A daemon that implements the UPnP Internet Gateway Device (IGD) specification";
-     platforms = platforms.linux;
-     license = licenses.bsd3;
-+    mainProgram = "miniupnpd";
-   };
- }
-diff --git a/pkgs/top-level/all-packages.nix b/pkgs/top-level/all-packages.nix
-index 79384397c0a46c..eacd2ee7899b5e 100644
---- a/pkgs/top-level/all-packages.nix
-+++ b/pkgs/top-level/all-packages.nix
-@@ -10819,6 +10819,8 @@ with pkgs;
- 
-   miniupnpd = callPackage ../tools/networking/miniupnpd { };
- 
-+  miniupnpd-nftables = callPackage ../tools/networking/miniupnpd { firewall = "nftables"; };
 +
-   miniball = callPackage ../development/libraries/miniball { };
- 
-   minijail = callPackage ../tools/system/minijail { };
++      upnpNatTableName = mkOption {
++        default = "miniupnpd";
++        type = types.str;
++        description = lib.mkDoc ''
++          upnp_nat_table_name for nftables.
++        '';
++      };
++
+       appendConfig = mkOption {
+         type = types.lines;
+         default = "";
