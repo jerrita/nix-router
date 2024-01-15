@@ -1,4 +1,4 @@
-From 8a48c61c61df574bbda888a5a78dcedc37afc51d Mon Sep 17 00:00:00 2001
+From 8684ee3c72062e42685ca732b73235a1855a21c7 Mon Sep 17 00:00:00 2001
 From: jerrita <je5r1ta@icloud.com>
 Date: Mon, 15 Jan 2024 15:43:16 +0800
 Subject: [PATCH] add options for miniupnpd-nftables
@@ -8,7 +8,7 @@ Subject: [PATCH] add options for miniupnpd-nftables
  1 file changed, 18 insertions(+), 2 deletions(-)
 
 diff --git a/nixos/modules/services/networking/miniupnpd.nix b/nixos/modules/services/networking/miniupnpd.nix
-index 116298dc6b1db1..8f55e3ac1b21e8 100644
+index 116298dc6b1db1..2af52d5e209493 100644
 --- a/nixos/modules/services/networking/miniupnpd.nix
 +++ b/nixos/modules/services/networking/miniupnpd.nix
 @@ -14,8 +14,8 @@ let
@@ -37,7 +37,7 @@ index 116298dc6b1db1..8f55e3ac1b21e8 100644
 +      upnpNatTableName = mkOption {
 +        default = "miniupnpd";
 +        type = types.str;
-+        description = lib.mkDoc ''
++        description = lib.mdDoc ''
 +          upnp_nat_table_name for nftables.
 +        '';
 +      };
