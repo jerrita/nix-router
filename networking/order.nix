@@ -8,6 +8,7 @@
     systemd.services.dhcpcd = {
         wants = lib.mkForce [ "network-online.target" ];
         after = lib.mkForce [ "network-online.target" ];
+        before = lib.mkForce [ ];
         serviceConfig = {
             ExecStartPre = "${pkgs.coreutils}/bin/sleep 5";
         };
