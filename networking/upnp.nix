@@ -5,7 +5,7 @@
         natpmp = true;
         externalInterface = "ppp0";
         internalIPs = [ "lan" ];
-        upnpTableName = "global";
+        # upnpTableName = "global";
     };
     systemd.services.miniupnpd.serviceConfig.ExecStartPre = ''
         ${pkgs.coreutils}/bin/sleep 10
