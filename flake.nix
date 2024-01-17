@@ -25,7 +25,7 @@
         inherit self inputs;
         channels.unstable.input = nixpkgs;
         channels.unstable.patches = [
-            ./patches/miniupnpd.patch
+            # ./patches/miniupnpd.patch
             # ./patches/order.patch
         ];
 

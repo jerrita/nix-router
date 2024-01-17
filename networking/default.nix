@@ -5,6 +5,7 @@
         ./smartdns.nix
         ./upnp.nix
         ./order.nix
+        ./hosts.nix
     ];
 
     networking = {

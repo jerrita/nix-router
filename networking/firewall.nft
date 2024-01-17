@@ -21,7 +21,10 @@ table inet global {
         devices = { ppp0, lan };
     }
 
-    chain miniupnpd {}
+    chain prerouting {
+        type nat hook prerouting priority dstnat; policy accept;
+        dport 5001 counter comment "Synology" dnat ip to 192.168.5.6:5001 
+    }
 
     chain input {
         type filter hook input priority filter; policy drop;
@@ -44,10 +47,9 @@ table inet global {
         ip protocol { tcp, udp } flow offload @f
         ip6 nexthdr { tcp, udp } flow offload @f
 
-        jump miniupnpd
-
         iifname lan counter accept comment "Allow lan -> *"
         iifname ppp0 oifname lan ct state { established, related } counter accept comment "Allow established back to lan"
+        ct status dnat counter accept comment "Allow port forward"
         iifname ppp0 oifname lan counter drop
     }
 
