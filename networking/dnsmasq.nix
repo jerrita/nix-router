@@ -13,11 +13,12 @@
                 "::,constructor:lan,ra-only,slaac"
             ];
             dhcp-option = [
-                "3,192.168.5.1"
-                "6,192.168.5.1"
+                "3,192.168.5.1"   # Gateway
+                "6,192.168.5.1"   # DNS
+                "119,lan"         # search domain
             ];
 
-            # acc -> smartdns; other -> clash fake-ip
+            # acc -> smartdns; others -> clash fake-ip
             server = [ "127.0.0.1#5355" ];
             conf-dir = "/etc/dnsmasq.d";
             cache-size = 0;

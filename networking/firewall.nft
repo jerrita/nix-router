@@ -23,7 +23,7 @@ table inet global {
 
     chain prerouting {
         type nat hook prerouting priority dstnat; policy accept;
-        dport 5001 counter comment "Synology" dnat ip to 192.168.5.6:5001 
+        tcp dport 5001 counter dnat ip to 192.168.5.6:5001 comment "Synology"
     }
 
     chain input {
