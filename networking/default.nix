@@ -6,6 +6,7 @@
         ./upnp.nix
         ./order.nix
         ./hosts.nix
+        ./ddns.nix
     ];
 
     networking = {

@@ -40,3 +40,10 @@ chown -R clash:clash /etc/clash
 - 5355: dns
 - fake-ip 模式
 - 不用开 tun
+
+## 你可能需要更改的其他文件
+
+- networking/ddns.nix       # DDNS 服务 (cloudflare only)
+- networking/firewall.nft   # 更改 prerouting 以做端口转发
+- networking/hosts.nix      # 固定 IP 解析
+- rules/special.conf        # 不想走代理的非白名单的域名可以在这里加上
