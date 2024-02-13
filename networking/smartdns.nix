@@ -6,6 +6,7 @@
             bind = "[::]:5353";
             log-level = "info";
             log-size = "512K";
+            mdns-lookup = "yes";
 
             server = [
                 "61.132.163.68"

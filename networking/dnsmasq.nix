@@ -1,22 +1,26 @@
 { config, pkgs, ... }:
 {
+    environment.etc."dnsmasq.d".source = ../conf/dnsmasq;
     services.dnsmasq = {
         enable = true;
         settings = {
             interface = [ "lan" "lo" ];
 
-            no-hosts = true;
+            # Misc
+            domain-needed = true;
+            read-ethers = true;
+            expand-hosts = true;
+            local-service = true;
+            edns-packet-max = "1232";
+            no-dhcp-interface = "ppp0";
 
             # DHCP Scope
             log-dhcp = true;
-            log-queries = true;
-            log-facility = "/var/log/dnsmasq.log";
             enable-ra = true;
             local = "/lan/";
-            expand-hosts = true;
             domain = "lan";
             dhcp-range = [ 
-                "192.168.5.10,192.168.5.250,12h"
+                "192.168.5.20,192.168.5.250,12h"
                 "::,constructor:lan,ra-only,slaac"
             ];
             dhcp-option = [
@@ -26,7 +30,11 @@
             ];
 
             # acc -> smartdns; others -> clash fake-ip
-            server = [ "127.0.0.1#5355" ];
+            server = [ 
+                "127.0.0.1#5355"
+                "/in-addr.arpa/127.0.0.1#5353"  # mdns lookup
+            ];
+
             conf-dir = "/etc/dnsmasq.d";
             cache-size = 0;
 

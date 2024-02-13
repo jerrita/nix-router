@@ -3,7 +3,7 @@
     services.ddns = {
         enable = false;
         interval = "5min";
-        apiToken = "***";
+        apiToken = "";
         domain = "";
         zone = "";
         nicName = "ppp0";

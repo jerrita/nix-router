@@ -1,25 +1,37 @@
 { config, pkgs, lib, modulesPath, ... }:
 {
   imports =
-    [ # Include the results of the hardware scan.
-      (modulesPath + "/virtualisation/proxmox-lxc.nix")
-      ./kernel.nix
-      ./nic.nix
+    [ ./kernel.nix
+      
       ./dial/pppoe.nix
-      # ./dial/dhcp.nix
 
       ../common
       ../networking
       ../services
     ];
 
-  nix.settings.experimental-features = ["nix-command" "flakes"];
-  proxmoxLXC.manageNetwork = true;
+  nix.settings = {
+    experimental-features = ["nix-command" "flakes"];
+    substituters = [
+        "https://mirrors.ustc.edu.cn/nix-channels/store"
+        "https://cache.nixos.org"
+    ];
+    allowUnfree = true;
+  };
+
+  documentation = {
+    man.enable = true;
+    dev.enable = false;
+    doc.enable = false;
+    nixos.enable = false;
+  };
 
   networking.hostName = "router";
   time.timeZone = "Asia/Shanghai";
 
   services.openssh.enable = true;
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  users.users.root.openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINu+Alullj1Meq+a3KNFlIT9lU9YCb8WDr/mZhHCEPji jerrita@mac-air"
+  ];
   system.stateVersion = "23.11";
 }

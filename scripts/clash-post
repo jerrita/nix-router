@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-echo deleting fwmark for tproxy...
-ip route del local 0.0.0.0/0 dev lo table 100
-ip rule del table 100
-echo done.

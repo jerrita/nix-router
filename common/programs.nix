@@ -25,10 +25,13 @@
         proxychains
         screenfetch
         nload
+        sysstat
+        s-tui
+        pstree
 
         tmux
+        screen
         gnumake
-
-        python3
+        socat
     ];
 }

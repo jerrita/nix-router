@@ -4,7 +4,6 @@
         ./dnsmasq.nix
         ./smartdns.nix
         ./order.nix
-        ./hosts.nix
     ];
 
     networking = {
@@ -13,16 +12,15 @@
         nftables = {
             enable = true;
             rulesetFile = ./firewall.nft;
-            checkRulesetFlatten = true;
             preCheckRuleset = ''
                 sed -i 's/skuid clash/skgid nogroup/g' ruleset.conf
             '';
+            flattenRulesetFile = true;
             # https://discourse.nixos.org/t/nftables-could-not-process-rule-no-such-file-or-directory/33031
             # checkRuleset = false;
         };
 
         interfaces = {
-            ppp0.useDHCP = true;
             wan.useDHCP = true;
             lan = {
                 ipv4.addresses = [{

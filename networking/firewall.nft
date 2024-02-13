@@ -20,10 +20,10 @@ table inet global {
         type nat hook prerouting priority dstnat; policy accept;
         tcp dport 5001 counter dnat ip to 192.168.5.6:5001 comment "Synology Web"
         tcp dport 6690 counter dnat ip to 192.168.5.6:6690 comment "Synology Drive"
-        tcp dport 17322 counter dnat ip to 192.168.5.5:17322 comment "Git SSH"
-        tcp dport 11451 counter dnat ip to 192.168.5.5:11451 comment "Web Proxy"
-        tcp dport 3389 counter dnat ip to 192.168.5.164:3389 comment "Windows"
-        tcp dport 8006 counter dnat ip to 192.168.5.2:8006 comment "PVE"
+        tcp dport 30522 counter dnat ip to 192.168.5.8:30522 comment "Git SSH"
+        tcp dport 31451 counter dnat ip to 192.168.5.8:31451 comment "Web Proxy"
+        tcp dport 3389 counter dnat ip to 192.168.5.15:3389 comment "Windows"
+        tcp dport 2 counter dnat ip to 192.168.5.10:443 comment "ESXi"
     }
 
     chain input {
@@ -39,7 +39,7 @@ table inet global {
         tcp dport { 10000-65535 } counter accept comment "Allow High Port [TCP]"
         udp dport { 10000-65535 } counter accept comment "Allow High Port [UDP]"
         ct state { established, related } counter accept
-        counter drop
+        iifname ppp0 counter drop
     }
 
     chain forward {

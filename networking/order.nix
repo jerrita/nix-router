@@ -2,7 +2,8 @@
 let
     onlineScript = pkgs.writeScript "wait-online" ''
         #!/usr/bin/env bash
-        until ping -c 1 223.5.5.5; do sleep 1; done
+        # until ping -c 1 223.5.5.5; do sleep 1; done
+        timeout 50s bash -c 'until ping -c 1 223.5.5.5; do sleep 1; done'
     '';
 in {
     systemd.services.wait-online = {
