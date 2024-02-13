@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+echo adding fwmark for tproxy...
+ip rule add fwmark 0x233 table 100
+ip route add local 0.0.0.0/0 dev lo table 100
+echo done.

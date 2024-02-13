@@ -1,0 +1,82 @@
+#!/usr/sbin/nft -f
+
+define ncn_list = {
+    198.18.0.0/16,
+    8.8.8.8/32,
+    1.1.1.1/32,
+    91.108.4.0/22,
+    91.108.8.0/22,
+    91.108.12.0/22,
+    91.108.16.0/22,
+    91.108.20.0/22,
+    91.108.56.0/22,
+    91.108.192.0/22,
+    149.154.160.0/20,
+    185.76.151.0/24,
+}
+
+table inet global {
+    chain prerouting {
+        type nat hook prerouting priority dstnat; policy accept;
+        tcp dport 5001 counter dnat ip to 192.168.5.6:5001 comment "Synology Web"
+        tcp dport 6690 counter dnat ip to 192.168.5.6:6690 comment "Synology Drive"
+        tcp dport 17322 counter dnat ip to 192.168.5.5:17322 comment "Git SSH"
+        tcp dport 11451 counter dnat ip to 192.168.5.5:11451 comment "Web Proxy"
+        tcp dport 3389 counter dnat ip to 192.168.5.164:3389 comment "Windows"
+        tcp dport 8006 counter dnat ip to 192.168.5.2:8006 comment "PVE"
+    }
+
+    chain input {
+        type filter hook input priority filter; policy drop;
+
+        iifname lo accept
+        iifname lan counter accept
+
+        ip6 nexthdr icmpv6 icmpv6 type { nd-router-solicit, nd-router-advert } counter accept
+        udp dport dhcpv6-client udp sport dhcpv6-server counter accept comment "IPv6 DHCP"
+        ip6 saddr ::/0 counter accept comment "Allow IPv6"
+        tcp dport 22 counter accept comment "Host SSH"
+        tcp dport { 10000-65535 } counter accept comment "Allow High Port [TCP]"
+        udp dport { 10000-65535 } counter accept comment "Allow High Port [UDP]"
+        ct state { established, related } counter accept
+        counter drop
+    }
+
+    chain forward {
+        type filter hook forward priority filter; policy drop;
+        tcp flags syn tcp option maxseg size set rt mtu
+        iifname lan counter accept comment "Allow lan -> *"
+        ip6 saddr ::/0 counter accept comment "Allow IPv6"
+        iifname ppp0 oifname lan ct state { established, related } counter accept
+        ct status dnat counter accept comment "Allow port forward"
+        iifname ppp0 oifname lan counter drop
+    }
+
+    chain postrouting {
+        type nat hook postrouting priority filter; policy accept;
+        ip saddr 192.168.5.0/24 oifname ppp0 counter masquerade
+    }
+}
+
+
+table ip clash {
+    chain prerouting {
+        type nat hook prerouting priority filter; policy accept;
+        meta skuid clash counter return
+        ip daddr $ncn_list udp dport 443 counter reject comment "Block QUIC"
+        ip daddr $ncn_list tcp dport 1-65535 counter redirect to :7893 comment "!chnroute -> clash (tcp)"
+        ip daddr $ncn_list udp dport 1-65535 meta mark set 0x233 tproxy to :7894 counter accept comment "!chnroute -> clash (udp)"
+    }
+
+    chain output {
+        type nat hook output priority mangle; policy accept;
+        meta skuid clash counter return
+        ip daddr $ncn_list tcp dport 1-65535 counter redirect to :7893 comment "!chnroute -> clash (tcp) [local]"
+        ip daddr $ncn_list udp dport 1-65535 meta mark set 0x233 counter comment "!chnroute -> clash (udp) [local]"
+    }
+
+    chain divert {
+        type filter hook prerouting priority mangle; policy accept;
+        ip protocol tcp socket transparent 1 meta mark set 0x233 counter accept
+    }
+}
