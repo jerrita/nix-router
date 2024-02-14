@@ -13,10 +13,10 @@
         nftables = {
             enable = true;
             rulesetFile = ./firewall.nft;
-            checkRulesetFlatten = true;
             preCheckRuleset = ''
                 sed -i 's/skuid clash/skgid nogroup/g' ruleset.conf
             '';
+            flattenRulesetFile = true;
             # https://discourse.nixos.org/t/nftables-could-not-process-rule-no-such-file-or-directory/33031
             # checkRuleset = false;
         };
