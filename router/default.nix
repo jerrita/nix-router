@@ -10,6 +10,8 @@
       ../services
     ];
 
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
   nix.settings = {
     experimental-features = ["nix-command" "flakes"];
     substituters = [
