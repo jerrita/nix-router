@@ -1,12 +1,17 @@
 { config, pkgs, ... }:
 {
     environment.etc."dnsmasq.d".source = ../static/dnsmasq;
+    environment.etc."special.conf" = {
+        source = ../static/special.conf;
+        mode = "0644";
+    };
     services.dnsmasq = {
         enable = true;
         settings = {
             interface = [ "lan" "lo" ];
 
             # Misc
+            no-hosts = true;
             domain-needed = true;
             read-ethers = true;
             expand-hosts = true;
@@ -36,6 +41,7 @@
             ];
 
             conf-dir = "/etc/dnsmasq.d";
+            conf-file = "/etc/special.conf";
             cache-size = 0;
 
             # DNS Scope
