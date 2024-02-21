@@ -15,61 +15,55 @@
             url = "github:jerrita/scripts";
             inputs.nixpkgs.follows = "nixpkgs";
         };
-        # utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
+        utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
     };
 
-    outputs = { self, nixpkgs, scripts } @ inputs: 
-    let 
-        nixpkgsPatched = system: let
-            pkgs = import nixpkgs { system = system; };
-            patchedPkgs = pkgs.applyPatches {
-                name = "nixpkgs-patched-${nixpkgs.shortRev}";
-                src = nixpkgs;
-                patches = [
-                    ./patches/r8168.patch
-                ];
-            };
-        in import patchedPkgs { inherit system; };
-        pkgs = nixpkgsPatched { config.allowUnfree = true; };
-    in rec {
-        nixosConfigurations.r2s = nixpkgs.lib.nixosSystem {
-            system = "aarch64-linux";
-            specialArgs = {inherit nixpkgs;};
-            modules = [
-                ./hardware/r2s.nix
-                ./router
-                scripts.nixosModules.ddns
-            ];
-        };
-        nixosConfigurations.esxi = nixpkgs.lib.nixosSystem {
-            system = "x86_64-linux";
-            specialArgs = {inherit nixpkgs;};
-            modules = [
-                ./hardware/esxi.nix
-                ./router
-                scripts.nixosModules.ddns
-            ];
-        };
-    };
-
-    # outputs = { self, nixpkgs, scripts, utils, ... } @ inputs:
-    #     utils.lib.mkFlake 
-    # {
-    #     inherit self inputs;
-    #     channels.unstable.input = nixpkgs;
-    #     channels.unstable.patches = [
-    #         # ./patches/miniupnpd.patch
-    #         # ./patches/r8168.patch
-    #     ];
-    #     hosts.r2s = {
+    # outputs = { self, nixpkgs, scripts } @ inputs: 
+    # let 
+    #     pkgs = import nixpkgs { allowUnfree = true; };
+    # in rec {
+    #     nixosConfigurations.r2s = nixpkgs.lib.nixosSystem {
     #         system = "aarch64-linux";
-    #         channelName = "unstable";
+    #         specialArgs = {inherit nixpkgs;};
     #         modules = [
-    #             "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+    #             ./hardware/r2s.nix
     #             ./router
     #             scripts.nixosModules.ddns
     #         ];
     #     };
-    #     images.rouetr = hosts.router.config.system.build.sdImage;
+    #     nixosConfigurations.esxi = nixpkgs.lib.nixosSystem {
+    #         system = "x86_64-linux";
+    #         specialArgs = {inherit nixpkgs;};
+    #         modules = [
+    #             ./hardware/esxi.nix
+    #             ./router
+    #             scripts.nixosModules.ddns
+    #         ];
+    #     };
     # };
+
+    outputs = { self, nixpkgs, scripts, utils, ... } @ inputs:
+        utils.lib.mkFlake 
+    {
+        inherit self inputs;
+
+        channelsConfig.allowUnfree = true;
+        hostDefaults.modules = [ 
+            ./router
+            scripts.nixosModules.ddns
+        ];
+
+        channels.realtek.input = nixpkgs;
+        channels.realtek.patches = [
+            ./patches/r8168.patch
+        ];
+
+        hosts.esxi = {
+            system = "x86_64-linux";
+            channelName = "realtek";
+            modules = [
+                ./hardware/esxi.nix
+            ];
+        };
+    };
 }
