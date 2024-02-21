@@ -19,7 +19,12 @@ in {
   boot.initrd.availableKernelModules = [ "ata_piix" "vmw_pvscsi" "ahci" "sd_mod" "sr_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
-  boot.extraModulePackages = [ ];
+  boot.extraModulePackages = with config.boot.kernelPackages; [ 
+    (r8168.overrideAttrs (_: {
+        patches = [ ../patches/r8168.patch ];
+    }))
+  ];
+  boot.kernelPackages = pkgs.linuxPackages_5_15;
 
   fileSystems."/" =
     { device = "/dev/disk/by-uuid/2d272700-f3bd-4a3b-9e77-08da2dd442a9";
@@ -64,11 +69,16 @@ in {
         matchConfig.PermanentMACAddress = "1c:83:41:40:c1:01";
         linkConfig.Name = "wan";
     };
-    "10-lan" = {
+    "10-vmnet" = {
         matchConfig.PermanentMACAddress = "00:0c:29:85:39:89";
-        linkConfig.Name = "lan";
+        linkConfig.Name = "intern0";
+    };
+    "10-r8168" = {
+        matchConfig.PermanentMACAddress = "00:0c:29:85:39:93";
+        linkConfig.Name = "intern1";
     };
   };
+  networking.bridges.lan.interfaces = [ "intern0" "intern1" ];
 
   virtualisation.vmware.guest.enable = true;
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
