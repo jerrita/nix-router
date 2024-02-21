@@ -7,7 +7,6 @@
     ];
 
     networking = {
-        useDHCP = false;
         firewall.enable = false;
         nftables = {
             enable = true;
