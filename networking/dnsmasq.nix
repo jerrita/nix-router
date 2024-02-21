@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 {
-    environment.etc."dnsmasq.d".source = ../conf/dnsmasq;
+    environment.etc."dnsmasq.d".source = ../static/dnsmasq;
     services.dnsmasq = {
         enable = true;
         settings = {
