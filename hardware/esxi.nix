@@ -75,8 +75,8 @@ in {
         linkConfig.Name = "lan";
     };
   };
-  
-  interfaces.vmnet = {
+
+  networking.interfaces.vmnet = {
     ipv4.addresses = [{
         address = "192.168.5.2";
         prefixLength = 24;
