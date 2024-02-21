@@ -19,11 +19,7 @@ in {
   boot.initrd.availableKernelModules = [ "ata_piix" "vmw_pvscsi" "ahci" "sd_mod" "sr_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
-  boot.extraModulePackages = with config.boot.kernelPackages; [ 
-    (r8168.overrideAttrs (_: {
-        patches = [ ../patches/r8168.patch ];
-    }))
-  ];
+  boot.extraModulePackages = with config.boot.kernelPackages; [ r8168 ];
   boot.kernelPackages = pkgs.linuxPackages_5_15;
 
   fileSystems."/" =
