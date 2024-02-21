@@ -53,6 +53,7 @@ in {
   systemd.services.tuning = {
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
+      path = [ pkgs.bash pkgs.ethtool ];
       serviceConfig = {
           Type = "oneshot";
           ExecStart = "${tuningScript}";

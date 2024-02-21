@@ -33,9 +33,22 @@ in {
 
   swapDevices = [ ];
 
+  zramSwap = {
+    enable = true;
+    memoryPercent = 150;
+  };
+
+  boot.kernel.sysctl = {
+    "vm.swapiness" = 180;
+    "vm.watermark_boost_factor" = 0;
+    "vm.watermark_scale_factor" = 125;
+    "vm.page-cluster" = 0;
+  };
+
   systemd.services.tuning = {
     wantedBy = [ "multi-user.target" ];
     after = [ "network.target" ];
+    path = [ pkgs.bash ];
     serviceConfig = {
         Type = "oneshot";
         ExecStart = "${tuningScript}";
