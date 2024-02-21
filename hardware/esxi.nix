@@ -66,14 +66,21 @@ in {
         matchConfig.PermanentMACAddress = "1c:83:41:40:c1:01";
         linkConfig.Name = "wan";
     };
-    # "10-vmnet" = {
-    #     matchConfig.PermanentMACAddress = "00:0c:29:85:39:89";
-    #     linkConfig.Name = "intern0";
-    # };
+    "10-vmnet" = {
+        matchConfig.PermanentMACAddress = "00:0c:29:85:39:89";
+        linkConfig.Name = "vmnet";
+    };
     "10-r8168" = {
         matchConfig.PermanentMACAddress = "1c:83:41:40:c1:00";
         linkConfig.Name = "lan";
     };
+  };
+  
+  interfaces.vmnet = {
+    ipv4.addresses = [{
+        address = "192.168.5.2";
+        prefixLength = 24;
+    }];
   };
 
   virtualisation.vmware.guest.enable = true;
