@@ -20,7 +20,17 @@
 
     outputs = { self, nixpkgs, scripts } @ inputs: 
     let 
-        pkgs = import nixpkgs { config.allowUnfree = true; };
+        nixpkgsPatched = system: let
+            pkgs = import nixpkgs { system = system; };
+            patchedPkgs = pkgs.applyPatches {
+                name = "nixpkgs-patched-${nixpkgs.shortRev}";
+                src = nixpkgs;
+                patches = [
+                    ./patches/r8168.patch
+                ];
+            };
+        in import patchedPkgs { inherit system; };
+        pkgs = nixpkgsPatched { config.allowUnfree = true; };
     in rec {
         nixosConfigurations.r2s = nixpkgs.lib.nixosSystem {
             system = "aarch64-linux";
