@@ -20,6 +20,7 @@ in {
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = with config.boot.kernelPackages; [ r8168 ];
+  boot.blacklistedKernelModules = [ "r8169" ];
   boot.kernelPackages = pkgs.linuxPackages_5_15;
 
   fileSystems."/" =
@@ -70,7 +71,7 @@ in {
         linkConfig.Name = "intern0";
     };
     "10-r8168" = {
-        matchConfig.PermanentMACAddress = "00:0c:29:85:39:93";
+        matchConfig.PermanentMACAddress = "1c:83:41:40:c1:00";
         linkConfig.Name = "intern1";
     };
   };
