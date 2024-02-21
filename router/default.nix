@@ -1,4 +1,4 @@
-{ config, pkgs, lib, modulesPath, nixpkgs, ... }:
+{ config, pkgs, lib, modulesPath, ... }:
 {
   imports =
     [ ./kernel.nix
@@ -19,8 +19,6 @@
         "https://cache.nixos.org"
     ];
   };
-
-  nixpkgs.config.allowUnfree = true;
 
   documentation = {
     man.enable = true;

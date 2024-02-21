@@ -1,4 +1,4 @@
-From 5a309e90b96f69805ae97eede2b40281d1d43e5e Mon Sep 17 00:00:00 2001
+From b832b5e4dc443139bde827f68fd02f1af6d403c4 Mon Sep 17 00:00:00 2001
 From: jerrita <je5r1ta@icloud.com>
 Date: Wed, 14 Feb 2024 09:08:28 +0800
 Subject: [PATCH] linuxPackages.r8168: bump version
@@ -8,7 +8,7 @@ Subject: [PATCH] linuxPackages.r8168: bump version
  1 file changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/pkgs/os-specific/linux/r8168/default.nix b/pkgs/os-specific/linux/r8168/default.nix
-index 69e779dfaa66a0..27927e2af12499 100644
+index 69e779dfaa66a0..69d467d79be0d9 100644
 --- a/pkgs/os-specific/linux/r8168/default.nix
 +++ b/pkgs/os-specific/linux/r8168/default.nix
 @@ -6,18 +6,16 @@ let modDestDir = "$out/lib/modules/${kernel.modDirVersion}/kernel/drivers/net/wi
@@ -28,7 +28,7 @@ index 69e779dfaa66a0..27927e2af12499 100644
      repo = "r8168";
      rev = version;
 -    sha256 = "1l8llpcnapcaafxp7wlyny2ywh7k6q5zygwwjl9h0l6p04cghss4";
-+    sha256 = "8nuQd+UVHBEmqRHg+mCWDZ3IgDz/Zje7kodZkSA8sQY";
++    sha256 = "01mi7hh92nc7jaxkfrpz7j0ci78djrhgmq0im4k1270mwmvr0yzj";
    };
  
    hardeningDisable = [ "pic" ];
