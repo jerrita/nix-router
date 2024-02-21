@@ -29,7 +29,7 @@
     nixos.enable = false;
   };
 
-  networking.hostName = "router";
+  networking.hostName = lib.mkDefault "router";
   time.timeZone = "Asia/Shanghai";
 
   services.openssh.enable = true;
