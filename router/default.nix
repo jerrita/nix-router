@@ -1,4 +1,4 @@
-{ config, pkgs, lib, modulesPath, ... }:
+{ config, pkgs, lib, modulesPath, nixpkgs, ... }:
 {
   imports =
     [ ./kernel.nix
@@ -18,8 +18,9 @@
         "https://mirrors.ustc.edu.cn/nix-channels/store"
         "https://cache.nixos.org"
     ];
-    allowUnfree = true;
   };
+
+  nixpkgs.config.allowUnfree = true;
 
   documentation = {
     man.enable = true;
