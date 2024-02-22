@@ -53,6 +53,7 @@
             scripts.nixosModules.ddns
         ];
 
+        channels.unstable.input = nixpkgs;
         channels.realtek.input = nixpkgs;
         channels.realtek.patches = [
             ./patches/r8168.patch
