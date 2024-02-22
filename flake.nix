@@ -53,15 +53,14 @@
             scripts.nixosModules.ddns
         ];
 
-        channels.unstable.input = nixpkgs;
-        channels.realtek.input = nixpkgs;
-        channels.realtek.patches = [
-            ./patches/r8168.patch
+        channels.patched.input = nixpkgs;
+        channels.patched.patches = [
+            ./patches/mihomo.patch
         ];
 
         hosts.esxi = {
             system = "x86_64-linux";
-            channelName = "unstable";
+            channelName = "patched";
             modules = [
                 ./hardware/esxi.nix
             ];

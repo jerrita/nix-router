@@ -1,0 +1,260 @@
+From 0783e62bde36dbdfcdd296b5a93a2bbc5c9cda00 Mon Sep 17 00:00:00 2001
+From: oluceps <i@oluceps.uk>
+Date: Sat, 2 Dec 2023 20:39:43 +0800
+Subject: [PATCH 1/5] clash-meta: rename to mihomo
+
+---
+ pkgs/top-level/aliases.nix      | 3 ++-
+ pkgs/top-level/all-packages.nix | 2 --
+ 2 files changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/pkgs/top-level/aliases.nix b/pkgs/top-level/aliases.nix
+index f9583cb8c21e3c..0aa607287d1a7b 100644
+--- a/pkgs/top-level/aliases.nix
++++ b/pkgs/top-level/aliases.nix
+@@ -152,7 +152,8 @@ mapAliases ({
+   cpp-ipfs-api = cpp-ipfs-http-client; # Project has been renamed. Added 2022-05-15
+   crispyDoom = crispy-doom; # Added 2023-05-01
+   cryptowatch-desktop = throw "Cryptowatch Desktop was sunset on September 30th 2023 and has been removed from nixpkgs"; # Added 2023-12-22
+-  clash = throw "'clash' has been removed, upstream gone. Consider using 'clash-meta' instead."; # added 2023-11-10
++  clash = throw "'clash' has been removed, upstream gone. Consider using 'mihomo' instead."; # added 2023-11-10
++  clash-meta = throw "'clash-meta' has been renamed to 'mihomo'"; # added 2023-12-02
+   clasp = clingo; # added 2022-12-22
+   claws-mail-gtk3 = claws-mail; # Added 2021-07-10
+   clucene_core_1 = throw "'clucene_core_1' has been renamed to/replaced by 'clucene_core'"; # Added 2023-12-09
+diff --git a/pkgs/top-level/all-packages.nix b/pkgs/top-level/all-packages.nix
+index ed729a17982ff6..4af99a0f2fae2a 100644
+--- a/pkgs/top-level/all-packages.nix
++++ b/pkgs/top-level/all-packages.nix
+@@ -4718,8 +4718,6 @@ with pkgs;
+ 
+   clash-geoip = callPackage ../data/misc/clash-geoip { };
+ 
+-  clash-meta = callPackage ../tools/networking/clash-meta { };
+-
+   clash-verge = callPackage ../applications/networking/clash-verge { };
+ 
+   clevercsv = with python3Packages; toPythonApplication clevercsv;
+
+From 9ad45babd457eacb5b67630160de97e1d2327c7a Mon Sep 17 00:00:00 2001
+From: oluceps <i@oluceps.uk>
+Date: Sat, 2 Dec 2023 20:39:56 +0800
+Subject: [PATCH 2/5] mihomo: 1.16.0 -> 1.17.0
+
+Co-authored-by: Anderson Torres <torres.anderson.85@protonmail.com>
+---
+ pkgs/by-name/mi/mihomo/package.nix           | 41 ++++++++++++++++++
+ pkgs/tools/networking/clash-meta/default.nix | 45 --------------------
+ 2 files changed, 41 insertions(+), 45 deletions(-)
+ create mode 100644 pkgs/by-name/mi/mihomo/package.nix
+ delete mode 100644 pkgs/tools/networking/clash-meta/default.nix
+
+diff --git a/pkgs/by-name/mi/mihomo/package.nix b/pkgs/by-name/mi/mihomo/package.nix
+new file mode 100644
+index 00000000000000..7f9417e169b76e
+--- /dev/null
++++ b/pkgs/by-name/mi/mihomo/package.nix
+@@ -0,0 +1,41 @@
++{ lib
++, fetchFromGitHub
++, buildGoModule
++}:
++
++buildGoModule rec {
++  pname = "mihomo";
++  version = "1.17.0";
++
++  src = fetchFromGitHub {
++    owner = "MetaCubeX";
++    repo = "mihomo";
++    rev = "v${version}";
++    hash = "sha256-2vkb4fFkms/LuPyUz86T0qCdZgv9W+Db65IGo+6ybLg=";
++  };
++
++  vendorHash = "sha256-/+X2eDCpo8AqWJ7rYbZrYzZapCgrdraTSx6BlWEUd78=";
++
++  excludedPackages = [ "./test" ];
++
++  ldflags = [
++    "-s"
++    "-w"
++    "-X github.com/metacubex/mihomo/constant.Version=${version}"
++  ];
++
++  tags = [
++    "with_gvisor"
++  ];
++
++  # network required
++  doCheck = false;
++
++  meta = with lib; {
++    description = "A simple Python Pydantic model for Honkai: Star Rail; former clash-meta";
++    homepage = "https://github.com/MetaCubeX/mihomo";
++    license = licenses.gpl3Only;
++    maintainers = with maintainers; [ oluceps ];
++    mainProgram = "mihomo";
++  };
++}
+diff --git a/pkgs/tools/networking/clash-meta/default.nix b/pkgs/tools/networking/clash-meta/default.nix
+deleted file mode 100644
+index 2ec32960d7fa5f..00000000000000
+--- a/pkgs/tools/networking/clash-meta/default.nix
++++ /dev/null
+@@ -1,45 +0,0 @@
+-{ lib
+-, fetchFromGitHub
+-, buildGoModule
+-}:
+-buildGoModule rec {
+-  pname = "clash-meta";
+-  version = "1.16.0";
+-
+-  src = fetchFromGitHub {
+-    owner = "MetaCubeX";
+-    repo = "Clash.Meta";
+-    rev = "v${version}";
+-    hash = "sha256-ORyjCYf2OPrSt/juiBk0Gf2Az4XoZipKBWWFXf8nIqE=";
+-  };
+-
+-  vendorHash = "sha256-ySCmHLuMTCxBcAYo7YD8zOpUAa90PQmeLLt+uOn40Pk=";
+-
+-  # Do not build testing suit
+-  excludedPackages = [ "./test" ];
+-
+-  ldflags = [
+-    "-s"
+-    "-w"
+-    "-X github.com/Dreamacro/clash/constant.Version=${version}"
+-  ];
+-
+-  tags = [
+-    "with_gvisor"
+-  ];
+-
+-  # network required
+-  doCheck = false;
+-
+-  postInstall = ''
+-    mv $out/bin/clash $out/bin/clash-meta
+-  '';
+-
+-  meta = with lib; {
+-    description = "Another Clash Kernel";
+-    homepage = "https://github.com/MetaCubeX/Clash.Meta";
+-    license = licenses.gpl3Only;
+-    maintainers = with maintainers; [ oluceps ];
+-    mainProgram = "clash-meta";
+-  };
+-}
+
+From a8f0bde122753ec5f408e3cbd82efb0b1622969d Mon Sep 17 00:00:00 2001
+From: oluceps <i@oluceps.uk>
+Date: Sat, 2 Dec 2023 20:55:10 +0800
+Subject: [PATCH 3/5] clash-verge: update dependence to mihomo
+
+---
+ pkgs/applications/networking/clash-verge/default.nix | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/pkgs/applications/networking/clash-verge/default.nix b/pkgs/applications/networking/clash-verge/default.nix
+index f83583283d4f2a..043c6f0087acb5 100644
+--- a/pkgs/applications/networking/clash-verge/default.nix
++++ b/pkgs/applications/networking/clash-verge/default.nix
+@@ -4,7 +4,7 @@
+ , dpkg
+ , wrapGAppsHook
+ , autoPatchelfHook
+-, clash-meta
++, mihomo
+ , openssl
+ , webkitgtk
+ , udev
+@@ -48,7 +48,7 @@ stdenv.mkDerivation rec {
+   '';
+ 
+   postFixup = ''
+-    ln -s ${lib.getExe clash-meta} $out/bin/clash-meta
++    ln -s ${lib.getExe mihomo} $out/bin/clash-meta
+   '';
+ 
+   meta = with lib; {
+
+From c1f8a78742f442adae1d7c1af01072efd376e2a0 Mon Sep 17 00:00:00 2001
+From: oluceps <i@oluceps.uk>
+Date: Sun, 7 Jan 2024 20:28:44 +0800
+Subject: [PATCH 4/5] mihomo: 1.17.0 -> 1.18.0
+
+Diff: https://github.com/MetaCubeX/mihomo/compare/v1.17.0...v1.18.0
+---
+ pkgs/by-name/mi/mihomo/package.nix | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/pkgs/by-name/mi/mihomo/package.nix b/pkgs/by-name/mi/mihomo/package.nix
+index 7f9417e169b76e..fee8dff78717ba 100644
+--- a/pkgs/by-name/mi/mihomo/package.nix
++++ b/pkgs/by-name/mi/mihomo/package.nix
+@@ -5,16 +5,16 @@
+ 
+ buildGoModule rec {
+   pname = "mihomo";
+-  version = "1.17.0";
++  version = "1.18.0";
+ 
+   src = fetchFromGitHub {
+     owner = "MetaCubeX";
+     repo = "mihomo";
+     rev = "v${version}";
+-    hash = "sha256-2vkb4fFkms/LuPyUz86T0qCdZgv9W+Db65IGo+6ybLg=";
++    hash = "sha256-lxiPrFPOPNppxdm2Ns4jaMHMRCYFlMz2h2rf7x0gv9c=";
+   };
+ 
+-  vendorHash = "sha256-/+X2eDCpo8AqWJ7rYbZrYzZapCgrdraTSx6BlWEUd78=";
++  vendorHash = "sha256-b7q0e3HHolVhwNJF0kwvwuVy8ndJLc0ITMl+0/YtSjA=";
+ 
+   excludedPackages = [ "./test" ];
+ 
+
+From 3e9ca35e370fbe8c82e474b2b914c7238b87998e Mon Sep 17 00:00:00 2001
+From: oluceps <i@oluceps.uk>
+Date: Sat, 10 Feb 2024 22:19:42 +0800
+Subject: [PATCH 5/5] mihomo: 1.18.0 -> 1.18.1
+
+Diff: https://github.com/MetaCubeX/mihomo/compare/v1.18.0...v1.18.1
+---
+ pkgs/by-name/mi/mihomo/package.nix | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/pkgs/by-name/mi/mihomo/package.nix b/pkgs/by-name/mi/mihomo/package.nix
+index fee8dff78717ba..c44813d42438c1 100644
+--- a/pkgs/by-name/mi/mihomo/package.nix
++++ b/pkgs/by-name/mi/mihomo/package.nix
+@@ -5,16 +5,16 @@
+ 
+ buildGoModule rec {
+   pname = "mihomo";
+-  version = "1.18.0";
++  version = "1.18.1";
+ 
+   src = fetchFromGitHub {
+     owner = "MetaCubeX";
+     repo = "mihomo";
+     rev = "v${version}";
+-    hash = "sha256-lxiPrFPOPNppxdm2Ns4jaMHMRCYFlMz2h2rf7x0gv9c=";
++    hash = "sha256-ezOkDrpytZQdc+Txe4eUyuWY6oipn9jIrmu7aO8lNlQ=";
+   };
+ 
+-  vendorHash = "sha256-b7q0e3HHolVhwNJF0kwvwuVy8ndJLc0ITMl+0/YtSjA=";
++  vendorHash = "sha256-tvPR5kAta4MlMTwjfxwVOacRr2nVpfalbN08mfxml64=";
+ 
+   excludedPackages = [ "./test" ];
+ 
+@@ -32,7 +32,7 @@ buildGoModule rec {
+   doCheck = false;
+ 
+   meta = with lib; {
+-    description = "A simple Python Pydantic model for Honkai: Star Rail; former clash-meta";
++    description = "A rule-based tunnel in Go. Former clash-meta";
+     homepage = "https://github.com/MetaCubeX/mihomo";
+     license = licenses.gpl3Only;
+     maintainers = with maintainers; [ oluceps ];
