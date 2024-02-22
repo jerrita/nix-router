@@ -60,7 +60,7 @@
 
         hosts.esxi = {
             system = "x86_64-linux";
-            channelName = "realtek";
+            channelName = "unstable";
             modules = [
                 ./hardware/esxi.nix
             ];

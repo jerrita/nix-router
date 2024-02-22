@@ -19,9 +19,9 @@ in {
   boot.initrd.availableKernelModules = [ "ata_piix" "vmw_pvscsi" "ahci" "sd_mod" "sr_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
-  boot.extraModulePackages = with config.boot.kernelPackages; [ r8168 ];
-  boot.blacklistedKernelModules = [ "r8169" ];
-  boot.kernelPackages = pkgs.linuxPackages_5_15;
+  # boot.extraModulePackages = with config.boot.kernelPackages; [ r8168 ];
+  # boot.blacklistedKernelModules = [ "r8169" ];
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   fileSystems."/" =
     { device = "/dev/disk/by-uuid/2d272700-f3bd-4a3b-9e77-08da2dd442a9";
@@ -68,18 +68,18 @@ in {
     };
     "10-vmnet" = {
         matchConfig.PermanentMACAddress = "00:0c:29:85:39:89";
-        linkConfig.Name = "intern0";
+        linkConfig.Name = "lan";
     };
-    "10-r8168" = {
-        matchConfig.PermanentMACAddress = "1c:83:41:40:c1:00";
-        linkConfig.Name = "intern1";
-    };
+    # "10-r8168" = {
+    #     matchConfig.PermanentMACAddress = "1c:83:41:40:c1:00";
+    #     linkConfig.Name = "intern1";
+    # };
   };
 
-  networking.bridges.lan = {
-    rstp = true;
-    interfaces = [ "intern0" "intern1" ];
-  };
+  # networking.bridges.lan = {
+  #   rstp = true;
+  #   interfaces = [ "intern0" "intern1" ];
+  # };
 
   virtualisation.vmware.guest.enable = true;
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
