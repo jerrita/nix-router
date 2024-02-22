@@ -75,8 +75,8 @@ table inet clash {
         ip6 daddr $ncn_list6 udp dport 443 counter reject comment "Block QUIC [IPv6]"
         ip daddr $ncn_list tcp dport 1-65535 counter redirect to :7893 comment "!chnroute -> clash (tcp)"
         ip6 daddr $ncn_list6 tcp dport 1-65535 counter redirect to :7893 comment "!chnroute6 -> clash (tcp)"
-        ip daddr $ncn_list udp dport 1-65535 meta mark set 0x233 tproxy to :7894 counter accept comment "!chnroute -> clash (udp)"
-        ip6 daddr $ncn_list6 udp dport 1-65535 meta mark set 0x233 tproxy to :7894 counter accept comment "!chnroute6 -> clash (udp)"
+        ip daddr $ncn_list udp dport 1-65535 meta mark set 0x233 tproxy ip to :7894 counter accept comment "!chnroute -> clash (udp)"
+        ip6 daddr $ncn_list6 udp dport 1-65535 meta mark set 0x233 tproxy ip6 to :7894 counter accept comment "!chnroute6 -> clash (udp)"
     }
 
     chain output {
