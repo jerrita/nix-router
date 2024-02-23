@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 
+PATH=$PATH:/run/current-system/sw/bin
+
 echo deleting fwmark for tproxy...
 ip route del local 0.0.0.0/0 dev lo table 100
 ip rule del table 100
+echo deleting table ip clash
+nft delete table ip clash
+echo reverting dnsmasq...
+sed -i 's/server=127.0.0.1#5355/server=127.0.0.1#5353/g' /etc/special.conf
+systemctl restart dnsmasq
 echo done.

@@ -35,10 +35,9 @@
             ];
 
             # acc -> smartdns; others -> clash fake-ip
-            server = [ 
-                "127.0.0.1#5355"
-                "/in-addr.arpa/127.0.0.1#5353"  # mdns lookup
-            ];
+            # we move this option to static/special.conf 
+            # for updating dynamically by clash scripts
+            server = [ "/in-addr.arpa/127.0.0.1#5353" ];
 
             conf-dir = "/etc/dnsmasq.d";
             conf-file = "/etc/special.conf";
