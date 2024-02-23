@@ -3,7 +3,8 @@
     security.sudo.wheelNeedsPassword = false;
     users.users.clash = {
         uid = 1000;
-        group = [ "clash" "wheel" ];
+        group = "clash";
+        extraGroups = [ "wheel" ];
         isNormalUser = true;
     };
     users.groups.clash = {};
