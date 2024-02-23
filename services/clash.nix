@@ -1,8 +1,9 @@
 { config, pkgs, ... }:
 {
+    security.sudo.wheelNeedsPassword = false;
     users.users.clash = {
         uid = 1000;
-        group = "clash";
+        group = [ "clash" "wheel" ];
         isNormalUser = true;
     };
     users.groups.clash = {};
