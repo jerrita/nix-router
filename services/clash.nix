@@ -4,6 +4,7 @@
     users.users.clash = {
         uid = 1000;
         group = "clash";
+        extraGroups = [ "wheel" ];
         isNormalUser = true;
     };
     security.sudo.extraRules = [
