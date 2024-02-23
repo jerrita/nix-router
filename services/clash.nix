@@ -43,7 +43,7 @@
         serviceConfig = {
             Type = "simple";
             ExecStartPre = "/etc/clash/scripts/clash-pre";
-            ExecStart = "su clash -c \"${pkgs.mihomo}/bin/mihomo -d /etc/clash\"";
+            ExecStart = "su clash -c ${pkgs.mihomo}/bin/mihomo -- -d /etc/clash";
             ExecStop = "/etc/clash/scripts/clash-post";
             Restart = "on-failure";
             CapabilityBoundingSet="CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW";
