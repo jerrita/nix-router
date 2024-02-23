@@ -42,6 +42,8 @@
         path = [ pkgs.bash ];
         serviceConfig = {
             Type = "simple";
+            User = "clash";
+            Group = "clash";
             ExecStartPre = "/etc/clash/scripts/clash-pre";
             ExecStart = "${pkgs.mihomo}/bin/mihomo -d /etc/clash";
             ExecStop = "/etc/clash/scripts/clash-post";
