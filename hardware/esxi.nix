@@ -4,6 +4,7 @@ let
   tuningScript = pkgs.writeScript "tuning" ''
     #!/usr/bin/env bash
     mkdir -p /etc/clash
+    chown -R clash:clash /etc/clash
     if [ -f /etc/init.sh ]; then
       echo "Run /etc/init.sh..."
       bash /etc/init.sh

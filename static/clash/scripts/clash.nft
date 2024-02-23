@@ -15,8 +15,6 @@ define ncn_list = {
     185.76.151.0/24,
 }
 
-table ip clash {}
-delete table ip clash
 table ip clash {
     chain prerouting {
         type nat hook prerouting priority filter; policy accept;

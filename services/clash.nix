@@ -12,16 +12,24 @@
                 url = "https://github.com/haishanh/yacd/archive/refs/heads/gh-pages.zip";
                 hash = "sha256-SaVsY2kGd+v6mmjwXAHSgRBDBYCxpWDYFysCUPDZjlE=";
             };
+            uid = 1000;
+            group = "clash";
         };
         "clash/scripts" = {
             source = ../static/clash/scripts;
+            uid = 1000;
+            group = "clash";
         };
         "clash/config.yaml" = {
             source = ../static/clash/config.yaml;
+            uid = 1000;
+            group = "clash";
             mode = "0600";
         };
         "clash/geoip.metadb" = {
             source = ../static/clash/geoip.metadb;
+            uid = 1000;
+            group = "clash";
             mode = "0600";
         };
     };
