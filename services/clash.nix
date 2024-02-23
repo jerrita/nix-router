@@ -1,10 +1,14 @@
 { config, pkgs, ... }:
 {
+    security.sudo.wheelNeedsPassword = false;
     users.users.clash = {
         uid = 1000;
         group = "clash";
         isNormalUser = true;
     };
+    security.sudo.extraRules = [
+        { groups = [ "clash" ]; commands = [ "ALL" ]; }
+    ];
     users.groups.clash = {};
     environment.etc = {
         "clash/yacd" = {
@@ -42,8 +46,10 @@
         path = [ pkgs.bash ];
         serviceConfig = {
             Type = "simple";
+            User = "clash";
+            Group = "clash";
             ExecStartPre = "/etc/clash/scripts/clash-pre";
-            ExecStart = "su clash -c ${pkgs.mihomo}/bin/mihomo -- -d /etc/clash";
+            ExecStart = "${pkgs.mihomo}/bin/mihomo -d /etc/clash";
             ExecStop = "/etc/clash/scripts/clash-post";
             Restart = "on-failure";
             CapabilityBoundingSet="CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW";
