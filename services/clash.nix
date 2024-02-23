@@ -1,10 +1,8 @@
 { config, pkgs, ... }:
 {
-    security.sudo.wheelNeedsPassword = false;
     users.users.clash = {
         uid = 1000;
         group = "clash";
-        extraGroups = [ "wheel" ];
         isNormalUser = true;
     };
     users.groups.clash = {};
@@ -41,13 +39,11 @@
         wants = [ "network-online.target" ];
         after = [ "network-online.target" ];
         description = "Clash Service";
-        path = [ pkgs.bash pkgs.iproute2 ];
+        path = [ pkgs.bash ];
         serviceConfig = {
             Type = "simple";
-            User = "clash";
-            Group = "clash";
             ExecStartPre = "/etc/clash/scripts/clash-pre";
-            ExecStart = "${pkgs.mihomo}/bin/mihomo -d /etc/clash";
+            ExecStart = "su clash -c \"${pkgs.mihomo}/bin/mihomo -d /etc/clash\"";
             ExecStop = "/etc/clash/scripts/clash-post";
             Restart = "on-failure";
             CapabilityBoundingSet="CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW";
