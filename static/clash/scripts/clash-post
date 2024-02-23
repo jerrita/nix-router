@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PATH=$PATH:/run/current-system/sw/bin
+PATH=$PATH:/run/wrappers/bin:/run/current-system/sw/bin
 
 echo deleting fwmark for tproxy...
 ip route del local 0.0.0.0/0 dev lo table 100
