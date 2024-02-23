@@ -44,9 +44,9 @@
             Type = "simple";
             User = "clash";
             Group = "clash";
-            ExecStartPre = "/etc/clash/scripts/clash-pre";
+            ExecStartPre = "+/etc/clash/scripts/clash-pre";
             ExecStart = "${pkgs.mihomo}/bin/mihomo -d /etc/clash";
-            ExecStop = "/etc/clash/scripts/clash-post";
+            ExecStop = "+/etc/clash/scripts/clash-post";
             Restart = "on-failure";
             CapabilityBoundingSet="CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW";
             AmbientCapabilities="CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW";
