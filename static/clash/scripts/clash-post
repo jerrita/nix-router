@@ -8,6 +8,6 @@ ip rule del table 100
 echo deleting table ip clash
 nft delete table ip clash
 echo reverting dnsmasq...
-/run/wrappers/bin/sudo sed -i 's/server=127.0.0.1#5355/server=127.0.0.1#5353/g' /etc/special.conf
-/run/wrappers/bin/sudo systemctl restart dnsmasq
+sed -i 's/server=127.0.0.1#5355/server=127.0.0.1#5353/g' /etc/special.conf
+systemctl restart dnsmasq
 echo done.

@@ -18,7 +18,7 @@ define ncn_list = {
 table ip clash {
     chain prerouting {
         type nat hook prerouting priority filter; policy accept;
-        meta skuid clash counter return
+        # meta skuid clash counter return
         ip daddr $ncn_list udp dport 443 counter reject comment "Block QUIC"
         ip daddr $ncn_list tcp dport 1-65535 counter redirect to :7893 comment "!chnroute -> clash (tcp)"
         ip daddr $ncn_list udp dport 1-65535 meta mark set 0x233 tproxy to :7894 counter accept comment "!chnroute -> clash (udp)"
@@ -26,8 +26,10 @@ table ip clash {
 
     chain output {
         type nat hook output priority mangle; policy accept;
-        meta skuid clash counter return
-        ip daddr $ncn_list tcp dport 1-65535 counter redirect to :7893 comment "!chnroute -> clash (tcp) [local]"
+        # meta skuid clash counter return
+        # ip daddr $ncn_list tcp dport 1-65535 counter redirect to :7893 comment "!chnroute -> clash (tcp) [local]"
+        meta mark 0x233 counter return
+        ip daddr $ncn_list tcp dport 1-65535 meta mark set 0x233 counter comment "!chnroute -> clash (tcp) [local]"
         ip daddr $ncn_list udp dport 1-65535 meta mark set 0x233 counter comment "!chnroute -> clash (udp) [local]"
     }
 

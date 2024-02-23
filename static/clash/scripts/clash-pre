@@ -6,6 +6,6 @@ echo preparing clash...
 ip rule add fwmark 0x233 table 100
 ip route add local 0.0.0.0/0 dev lo table 100
 nft -f /etc/clash/scripts/clash.nft
-/run/wrappers/bin/sudo sed -i 's/server=127.0.0.1#5353/server=127.0.0.1#5355/g' /etc/special.conf
-/run/wrappers/bin/sudo systemctl restart dnsmasq
+sed -i 's/server=127.0.0.1#5353/server=127.0.0.1#5355/g' /etc/special.conf
+systemctl restart dnsmasq
 echo clash is ready to start
