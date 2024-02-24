@@ -2,9 +2,10 @@
 let
     settings = builtins.fromJSON (builtins.readFile ../static/sing.json);
     extraSettings = {
+        log.level = "warn";
         dns = {
             servers = [
-                { tag = "local"; address = "tls://223.5.5.5"; detour = "direct"; }
+                { tag = "local"; address = "223.5.5.5"; detour = "direct"; }
                 { tag = "remote"; address = "fakeip"; }
                 { tag = "nxdomain"; address = "rcode://name_error"; }
             ];
@@ -21,13 +22,6 @@ let
             independent_cache = false;
         };
         inbounds = [
-            {
-                tag = "dns";
-                type = "direct";
-                listen = "::1";
-                listen_port = 5355;
-                network = "udp";
-            }
             {
                 type = "tun";
                 inet4_address = "172.19.0.1/30";
@@ -60,11 +54,11 @@ in {
     };
     systemd.services.sing-box = {
         postStart = ''
-            sed -i 's/server=127.0.0.1#5353/server=127.0.0.1#5355/g' /etc/special.conf
+            sed -i 's/server=127.0.0.1#5353/server=172.19.0.2/g' /etc/special.conf
             systemctl restart dnsmasq
         '';
         postStop = ''
-            sed -i 's/server=127.0.0.1#5355/server=127.0.0.1#5353/g' /etc/special.conf
+            sed -i 's/server=172.19.0.2/server=127.0.0.1#5353/g' /etc/special.conf
             systemctl restart dnsmasq
         '';
     };
