@@ -39,7 +39,7 @@ let
                 listen = "::1";
                 listen_port = 5355;
                 network = "udp";
-            },
+            }
             {
                 type = "tun";
                 inet4_address = "172.19.0.1/30";
