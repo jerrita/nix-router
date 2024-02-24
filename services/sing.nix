@@ -41,7 +41,7 @@ let
         ];
         experimental = {
             cache_file = {
-                enable = true;
+                enabled = true;
                 store_fakeip = true;
                 store_rdrc = true;
             };
