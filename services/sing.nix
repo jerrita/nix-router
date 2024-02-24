@@ -18,7 +18,7 @@ let
                 inet4_range = "198.18.0.0/15";
                 inet6_range = "fc00::/18";
             };
-            strategy = "prefer_ipv4";
+            strategy = "prefer_ipv6";
             independent_cache = false;
         };
         inbounds = [
