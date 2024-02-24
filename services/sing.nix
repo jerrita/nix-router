@@ -2,7 +2,7 @@
 let
     settings = builtins.fromJSON (builtins.readFile ../static/sing.json);
     extraSettings = {
-        log.level = "warn";
+        log.level = "debug";
         dns = {
             servers = [
                 { tag = "local"; address = "223.5.5.5"; detour = "direct"; }
@@ -12,6 +12,7 @@ let
             rules = [
                 { geosite = "category-ads-all"; server = "nxdomain"; disable_cache = true; }
                 { geosite = "geolocation-!cn"; query_type = ["A" "AAAA"]; server = "remote"; }
+                { out_bound = "any"; server = "local"; }
             ];
             fakeip = {
                 enabled = true;
@@ -19,15 +20,31 @@ let
                 inet6_range = "fc00::/18";
             };
             strategy = "prefer_ipv6";
-            independent_cache = false;
+            independent_cache = true;
         };
         inbounds = [
+            {
+                type = "direct";
+                tag = "dns-in";
+                network = "udp";
+                listen = "::";
+                listen_port = 5355;
+            }
             {
                 type = "tun";
                 inet4_address = "172.19.0.1/30";
                 gso = true;
             }
         ];
+        route = {
+            rules = [
+                { protocol = "dns"; outbound = "dns-out"; }
+                { inbound = "dns-in"; outbound = "dns-out"; }
+                { geosite = "category-ads-all"; outbound = "block"; }
+                { geosite = "cn"; geoip = ["private" "cn"]; outbound = "direct"; }
+            ];
+            auto_detect_interface = true;
+        };
         experimental = {
             cache_file = {
                 enabled = true;
@@ -49,30 +66,16 @@ in {
     };
     systemd.services.sing-box = {
         postStart = ''
-            sed -i 's/server=127.0.0.1#5353/server=172.19.0.2/g' /etc/special.conf
+            sed -i 's/server=127.0.0.1#5353/server=127.0.0.1#5355/g' /etc/special.conf
             systemctl restart dnsmasq
 
             PATH=/run/current-system/sw/bin:$PATH
-
-            if nft list tables | grep -q sing-box; then
-                nft delete table sing-box
-            fi
-            nft create table inet sing-box
-            nft add chain inet sing-box mangle { type filter hook prerouting priority mangle \; policy accept\; }
-            nft add rule inet sing-box mangle iifname lan counter meta mark set 0x233
-            ip route replace default dev tun0 table 100
-            ip rule add fwmark 0x233 table 100
         '';
         postStop = ''
-            sed -i 's/server=172.19.0.2/server=127.0.0.1#5353/g' /etc/special.conf
+            sed -i 's/server=127.0.0.1#5355/server=127.0.0.1#5353/g' /etc/special.conf
             systemctl restart dnsmasq
 
             PATH=/run/current-system/sw/bin:$PATH
-            
-            ip route del default dev tun0 table 100
-            ip rule del fwmark 0x233 table 100
-            ip route add default dev ppp0
-            nft delete table sing-box
         '';
     };
 }
