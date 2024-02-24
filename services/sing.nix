@@ -72,7 +72,7 @@ in {
         settings = settings // extraSettings;
     };
     systemd.services.sing-box.serviceConfig = {
-        ExecStartPre = "${pkgs.coreutils}/bin/sh ${preStartScript}";
+        ExecStartPost = "${pkgs.coreutils}/bin/sh ${preStartScript}";
         ExecStopPost = "${pkgs.coreutils}/bin/sh ${postStopScript}";
     };
 }
