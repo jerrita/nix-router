@@ -74,6 +74,7 @@ in {
             sed -i 's/server=127.0.0.1#5353/server=127.0.0.1#5355/g' /etc/special.conf
             # sed -i 's/^conf-dir=\/etc\/dnsmasq.d/#conf-dir=\/etc\/dnsmasq.d/g' /etc/special.conf
             systemctl restart dnsmasq
+            PATH=/run/current-system/sw/bin:$PATH
             declare -a ncn_list=(
                 "198.18.0.0/15"
                 "8.8.8.8/32"
@@ -88,31 +89,26 @@ in {
                 "149.154.160.0/20"
                 "185.76.151.0/24"
             )
+            declare -a ncn_list6=(
+                "fc00::/18"
+                "2001:b28:f23d::/48"
+                "2001:b28:f23f::/48"
+                "2001:67c:4e8::/48"
+                "2001:b28:f23c::/48"
+                "2a0a:f280::/32"
+            )
+            while ! ip a show tun0 &> /dev/null; do sleep 1; done
             for cidr in "''${ncn_list[@]}"; do
-                ip route add $cidr via 172.19.0.2
+                ip route add $cidr dev tun0
+            done
+            for cidr in "''${ncn_list6[@]}"; do
+                ip -6 route add $cidr dev tun0
             done
         '';
         postStop = ''
             sed -i 's/server=127.0.0.1#5355/server=127.0.0.1#5353/g' /etc/special.conf
             # sed -i 's/^#conf-dir=\/etc\/dnsmasq.d/conf-dir=\/etc\/dnsmasq.d/g' /etc/special.conf
             systemctl restart dnsmasq
-            declare -a ncn_list=(
-                "198.18.0.0/15"
-                "8.8.8.8/32"
-                "1.1.1.1/32"
-                "91.108.4.0/22"
-                "91.108.8.0/22"
-                "91.108.12.0/22"
-                "91.108.16.0/22"
-                "91.108.20.0/22"
-                "91.108.56.0/22"
-                "91.108.192.0/22"
-                "149.154.160.0/20"
-                "185.76.151.0/24"
-            )
-            for cidr in "''${ncn_list[@]}"; do
-                ip route delete $cidr via 172.19.0.2
-            done
         '';
     };
 }

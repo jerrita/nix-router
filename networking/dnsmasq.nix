@@ -40,7 +40,6 @@
             server = [ "/in-addr.arpa/127.0.0.1#5353" ];
 
             conf-file = "/etc/special.conf";
-            cache-size = 0;
 
             # DNS Scope
             port = 53;
