@@ -1,0 +1,111 @@
+{
+    "log": {
+      "level": "warn"
+    },
+    "dns": {
+      "servers": [
+        {
+          "tag": "local",
+          "address": "tls://223.5.5.5",
+          "detour": "direct"
+        },
+        {
+          "tag": "remote",
+          "address": "fakeip"
+        },
+        {
+          "tag": "nxdomain",
+          "address": "rcode://name_error"
+        }
+      ],
+      "rules": [
+        {
+          "geosite": "category-ads-all",
+          "server": "nxdomain",
+          "disable_cache": true
+        },
+        {
+          "geosite": "geolocation-!cn",
+          "query_type": [
+            "A",
+            "AAAA"
+          ],
+          "server": "remote"
+        }
+      ],
+      "fakeip": {
+        "enabled": true,
+        "inet4_range": "198.18.0.0/15",
+        "inet6_range": "fc00::/18"
+      },
+      "strategy": "prefer_ipv4",
+      "independent_cache": true
+    },
+    "inbounds": [
+      {
+        "tag": "dns",
+        "type": "direct",
+        "listen": "::1",
+        "listen_port": 5355,
+        "network": "udp"
+      },
+      {
+        "type": "tun",
+        "inet4_address": "172.19.0.1/30",
+        "sniff": true,
+        "auto_route": true
+      }
+    ],
+    "outbounds": [
+      {
+        "type": "selector",
+        "tag": "select",
+        "outbounds": [
+        ],
+        "default": "direct",
+        "interrupt_exist_connections": true
+      },
+      {
+        "type": "direct",
+        "tag": "direct"
+      },
+      {
+        "type": "block",
+        "tag": "block"
+      },
+      {
+        "type": "dns",
+        "tag": "dns-out"
+      }
+    ],
+    "route": {
+      "rules": [
+        {
+          "protocol": "dns",
+          "outbound": "dns-out"
+        },
+        {
+          "geosite": "category-ads-all",
+          "outbound": "block"
+        },
+        {
+          "geosite": "cn",
+          "geoip": [
+            "private",
+            "cn"
+          ],
+          "outbound": "direct"
+        }
+      ],
+      "auto_detect_interface": true
+    },
+    "experimental": {
+      "clash_api": {
+        "external_controller": "127.0.0.1:9090",
+        "external_ui": "ui",
+        "store_selected": true,
+        "store_mode": true,
+        "store_fakeip": true
+      }
+    }
+  }

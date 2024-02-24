@@ -3,7 +3,8 @@
     imports = [
         ./offload.nix
         ./cron.nix
-        ./clash.nix
+        # ./clash.nix
+        ./sing.nix
         ./zerotier.nix
         ./ddns.nix
         ./upnp.nix
