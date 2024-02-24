@@ -5,7 +5,8 @@ let
         log.level = "warn";
         dns = {
             servers = [
-                { tag = "local"; address = "127.0.0.1:5353"; detour = "direct"; }
+                { tag = "local"; address = "127.0.0.1:5353"; detour = "direct"; address_resolver = "bootstrap"; }
+                { tag = "bootstrap"; address = "223.5.5.5"; detour = "direct"; }
                 { tag = "remote"; address = "fakeip"; }
                 { tag = "nxdomain"; address = "rcode://name_error"; }
             ];
@@ -34,6 +35,10 @@ let
                 type = "tun";
                 inet4_address = "172.19.0.1/30";
                 gso = true;
+                auto_route = true;
+                inet4_route_exclude_address = [
+                    "192.168.5.0/24"
+                ];
             }
         ];
         route = {
@@ -67,12 +72,12 @@ in {
     systemd.services.sing-box = {
         postStart = ''
             sed -i 's/server=127.0.0.1#5353/server=127.0.0.1#5355/g' /etc/special.conf
-            sed -i 's/^conf-dir=\/etc\/dnsmasq.d/#conf-dir=\/etc\/dnsmasq.d/g' /etc/dnsmasq.conf
+            sed -i 's/^conf-dir=\/etc\/dnsmasq.d/#conf-dir=\/etc\/dnsmasq.d/g' /etc/special.conf
             systemctl restart dnsmasq
         '';
         postStop = ''
             sed -i 's/server=127.0.0.1#5355/server=127.0.0.1#5353/g' /etc/special.conf
-            sed -i 's/^#conf-dir=\/etc\/dnsmasq.d/conf-dir=\/etc\/dnsmasq.d/g' /etc/dnsmasq.conf
+            sed -i 's/^#conf-dir=\/etc\/dnsmasq.d/conf-dir=\/etc\/dnsmasq.d/g' /etc/special.conf
             systemctl restart dnsmasq
         '';
     };
