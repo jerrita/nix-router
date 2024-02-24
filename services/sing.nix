@@ -4,12 +4,14 @@ let
     preStartScript = pkgs.writeScript "preStart.sh" ''
         #!/usr/bin/env bash
         set -e
+        PATH=/run/current-system/sw/bin:$PATH
         sed -i 's/server=127.0.0.1#5353/server=127.0.0.1#5355/g' /etc/special.conf
         systemctl restart dnsmasq
     '';
     postStopScript = pkgs.writeScript "postStop.sh" ''
         #!/usr/bin/env bash
         set -e
+        PATH=/run/current-system/sw/bin:$PATH
         sed -i 's/server=127.0.0.1#5355/server=127.0.0.1#5353/g' /etc/special.conf
         systemctl restart dnsmasq
     '';
