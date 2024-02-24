@@ -39,7 +39,6 @@
             # for updating dynamically by clash scripts
             server = [ "/in-addr.arpa/127.0.0.1#5353" ];
 
-            conf-dir = "/etc/dnsmasq.d";
             conf-file = "/etc/special.conf";
             cache-size = 0;
 

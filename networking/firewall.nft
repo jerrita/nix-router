@@ -34,7 +34,7 @@ table inet global {
         ip6 saddr ::/0 counter accept comment "Allow IPv6"
         iifname ppp0 oifname lan ct state { established, related } counter accept
         ct status dnat counter accept comment "Allow port forward"
-        iifname ppp0 oifname lan counter drop
+        iifname tun* oifname lan counter accept comment "Allow VPN -> lan"
     }
 
     chain postrouting {

@@ -2,17 +2,17 @@
 let
     settings = builtins.fromJSON (builtins.readFile ../static/sing.json);
     extraSettings = {
-        log.level = "debug";
+        log.level = "warn";
         dns = {
             servers = [
-                { tag = "local"; address = "223.5.5.5"; detour = "direct"; }
+                { tag = "local"; address = "127.0.0.1:5353"; detour = "direct"; }
                 { tag = "remote"; address = "fakeip"; }
                 { tag = "nxdomain"; address = "rcode://name_error"; }
             ];
             rules = [
                 { geosite = "category-ads-all"; server = "nxdomain"; disable_cache = true; }
                 { geosite = "geolocation-!cn"; query_type = ["A" "AAAA"]; server = "remote"; }
-                { out_bound = "any"; server = "local"; }
+                { outbound = "any"; server = "local"; }
             ];
             fakeip = {
                 enabled = true;
@@ -51,7 +51,7 @@ let
                 store_fakeip = true;
             };
             clash_api = {
-                external_controller = "127.0.0.1:9090";
+                external_controller = "192.168.5.1:9090";
                 external_ui = pkgs.fetchzip {
                     url = "https://github.com/haishanh/yacd/archive/refs/heads/gh-pages.zip";
                     hash = "sha256-SaVsY2kGd+v6mmjwXAHSgRBDBYCxpWDYFysCUPDZjlE=";
@@ -67,15 +67,13 @@ in {
     systemd.services.sing-box = {
         postStart = ''
             sed -i 's/server=127.0.0.1#5353/server=127.0.0.1#5355/g' /etc/special.conf
+            sed -i 's/^conf-dir=\/etc\/dnsmasq.d/#conf-dir=\/etc\/dnsmasq.d/g' /etc/dnsmasq.conf
             systemctl restart dnsmasq
-
-            PATH=/run/current-system/sw/bin:$PATH
         '';
         postStop = ''
             sed -i 's/server=127.0.0.1#5355/server=127.0.0.1#5353/g' /etc/special.conf
+            sed -i 's/^#conf-dir=\/etc\/dnsmasq.d/conf-dir=\/etc\/dnsmasq.d/g' /etc/dnsmasq.conf
             systemctl restart dnsmasq
-
-            PATH=/run/current-system/sw/bin:$PATH
         '';
     };
 }
