@@ -52,6 +52,8 @@ in {
             sed -i 's/server=127.0.0.1#5353/server=172.19.0.2/g' /etc/special.conf
             systemctl restart dnsmasq
 
+            PATH=/run/current-system/sw/bin:$PATH
+
             if nft list tables | grep -q sing-box; then
                 nft delete table sing-box
             fi
@@ -64,6 +66,9 @@ in {
         postStop = ''
             sed -i 's/server=172.19.0.2/server=127.0.0.1#5353/g' /etc/special.conf
             systemctl restart dnsmasq
+
+            PATH=/run/current-system/sw/bin:$PATH
+            
             ip route del default dev tun0 table 100
             ip rule del fwmark 0x233 table 100
             ip route add default dev ppp0
