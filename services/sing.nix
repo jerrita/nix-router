@@ -53,7 +53,7 @@ let
         experimental = {
             cache_file = {
                 enabled = true;
-                store_fakeip = true;
+                store_fakeip = false;
             };
             clash_api = {
                 external_controller = "192.168.5.1:9090";
