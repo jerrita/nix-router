@@ -26,11 +26,6 @@ let
                 type = "tun";
                 inet4_address = "172.19.0.1/30";
                 gso = true;
-                sniff = true;
-                auto_route = true;
-                inet4_route_exclude_address = [
-                    "192.168.5.0/24"
-                ];
             }
         ];
         experimental = {
@@ -56,10 +51,23 @@ in {
         postStart = ''
             sed -i 's/server=127.0.0.1#5353/server=172.19.0.2/g' /etc/special.conf
             systemctl restart dnsmasq
+
+            if nft list tables | grep -q sing-box; then
+                nft delete table sing-box
+            fi
+            nft create table inet sing-box
+            nft add chain inet sing-box mangle { type filter hook prerouting priority mangle \; policy accept\; }
+            nft add rule inet sing-box mangle iifname lan counter meta mark set 0x233
+            ip route replace default dev tun0 table 100
+            ip rule add fwmark 0x233 table 100
         '';
         postStop = ''
             sed -i 's/server=172.19.0.2/server=127.0.0.1#5353/g' /etc/special.conf
             systemctl restart dnsmasq
+            ip route del default dev tun0 table 100
+            ip rule del fwmark 0x233 table 100
+            ip route add default dev ppp0
+            nft delete table sing-box
         '';
     };
 }
