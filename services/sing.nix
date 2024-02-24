@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 let
     settings = builtins.fromJSON (builtins.readFile ../static/sing.json);
     preStartScript = lib.writeScript "preStart.sh" ''
