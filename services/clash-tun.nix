@@ -39,21 +39,21 @@
             Type = "simple";
             User = "clash";
             Group = "clash";
+            ExecStartPre = "+${pkgs.writeScript "preStart" ''
+                mkdir -p /etc/clash
+                chown -R clash:clash /etc/clash
+                sed -i 's/server=127.0.0.1#5353/server=127.0.0.1#5355/g' /etc/special.conf
+                systemctl restart dnsmasq
+            ''}";
             ExecStart = "${pkgs.mihomo}/bin/mihomo -d /etc/clash";
+            ExecStopPost = "+${pkgs.writeScript "postStop" ''
+                sed -i 's/server=127.0.0.1#5355/server=127.0.0.1#5353/g' /etc/special.conf
+                systemctl restart dnsmasq
+            ''}";
             Restart = "on-failure";
             CapabilityBoundingSet="CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW";
             AmbientCapabilities="CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW";
         };
-        preStart = ''
-            mkdir -p /etc/clash
-            chown -R clash:clash /etc/clash
-            sed -i 's/server=127.0.0.1#5353/server=127.0.0.1#5355/g' /etc/special.conf
-            systemctl restart dnsmasq
-        '';
-        postStop = ''
-            sed -i 's/server=127.0.0.1#5355/server=127.0.0.1#5353/g' /etc/special.conf
-            systemctl restart dnsmasq
-        '';
     };
     environment.systemPackages = [ pkgs.mihomo ];
 }
