@@ -36,6 +36,6 @@
         "net.core.netdev_max_backlog" = 50000;
 
         "net.netfilter.nf_conntrack_checksum" = 0;
-        "net.netfilter.nf_conntrack_max" = 1048576;
+        "net.netfilter.nf_conntrack_max" = 200000;
     };
 }
