@@ -62,6 +62,10 @@ in {
         enable = true;
         settings = settings // extraSettings;
     };
+    # 在运行一段时间后，inbounds 会堆积，导致内存占用过高，因此需要定时重启
+    services.cron.systemCronJobs = [
+        "*/30 * * * * root ${pkgs.systemd}/bin/systemctl restart sing-box"
+    ];
     systemd.services.sing-box = {
         postStart = ''
             sed -i 's/server=127.0.0.1#5353/server=127.0.0.1#5355/g' /etc/special.conf
