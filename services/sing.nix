@@ -12,11 +12,12 @@ let
             ];
             rules = [
                 { geosite = "category-ads-all"; server = "nxdomain"; disable_cache = true; }
-                { outbound = "any"; server = "local"; }
+                { inbound = "dns-in"; server = "remote"; }
             ];
             fakeip = {
                 enabled = true;
                 inet4_range = "198.18.0.0/15";
+                inet6_range = "fc00::/18";
             };
             strategy = "prefer_ipv6";
             independent_cache = true;
@@ -37,7 +38,7 @@ let
         ];
         route = {
             rules = [
-                { inbound = "dns-in"; protocol = "dns"; outbound = "dns-out"; }
+                { inbound = "dns-in"; outbound = "dns-out"; }
                 { geosite = "category-ads-all"; outbound = "block"; }
             ];
             default_interface = "ppp0";
