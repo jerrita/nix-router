@@ -5,9 +5,9 @@ let
         log.level = "warn";
         dns = {
             servers = [
-                { tag = "remote"; address = "fakeip"; }
                 { tag = "local"; address = "127.0.0.1:5353"; detour = "direct"; address_resolver = "bootstrap"; }
                 { tag = "bootstrap"; address = "223.5.5.5"; detour = "direct"; }
+                { tag = "remote"; address = "fakeip"; }
                 { tag = "nxdomain"; address = "rcode://name_error"; }
             ];
             rules = [
