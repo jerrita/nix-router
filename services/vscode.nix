@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 {
-    import = [
+    imports = [
         ../modules/vscode-ssh-fix.nix
     ];
 
