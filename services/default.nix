@@ -3,9 +3,9 @@
     imports = [
         ./offload.nix
         ./cron.nix
-        ./clash.nix           # user tun
+        # ./clash-tun.nix     # user tun
         # ./sing.nix          # has issues on router
-        # ./clash-legacy.nix  # use redir and tproxy
+        ./clash.nix           # use redir and tproxy
         ./zerotier.nix
         ./ddns.nix
         ./upnp.nix

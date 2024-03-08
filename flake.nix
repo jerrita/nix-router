@@ -55,9 +55,7 @@
         ];
 
         channels.patched.input = nixpkgs;
-        channels.patched.patches = [
-            ./patches/mihomo.patch
-        ];
+        # channels.patched.patches = [ ];
 
         hosts.esxi = {
             system = "x86_64-linux";
