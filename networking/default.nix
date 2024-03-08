@@ -6,6 +6,14 @@
         ./order.nix
     ];
 
+    services.timesyncd.servers = [
+        "ntp.aliyun.com"
+        "ntp1.aliyun.com"
+        "ntp2.aliyun.com"
+        "ntp3.aliyun.com"
+        "ntp4.aliyun.com"
+    ];
+
     networking = {
         firewall.enable = false;
         nftables = {
