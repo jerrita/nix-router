@@ -16,6 +16,7 @@
             url = "github:jerrita/scripts";
             inputs.nixpkgs.follows = "nixpkgs";
         };
+        vscode-server.url = "github:nix-community/nixos-vscode-server";
         utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
     };
 
