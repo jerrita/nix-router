@@ -9,5 +9,6 @@
         ./zerotier.nix
         ./ddns.nix
         ./upnp.nix
+        ./vscode.nix
     ];
 }
