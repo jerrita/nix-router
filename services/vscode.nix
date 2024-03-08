@@ -1,8 +1,8 @@
 { config, pkgs, ... }:
 {
     imports = [
-        ../modules/vscode-ssh-fix.nix
+        (fetchTarball "https://github.com/nix-community/nixos-vscode-server/tarball/master")
     ];
 
-    services.nixos-vscode-ssh-fix.enable = true;
+    services.vscode-server.enable = true;
 }
