@@ -38,7 +38,6 @@
             # we move this option to static/special.conf 
             # for updating dynamically by clash scripts
             server = [ "/in-addr.arpa/127.0.0.1#5353" ];
-
             conf-file = "/etc/special.conf";
 
             # DNS Scope

@@ -10,5 +10,7 @@
         ./ddns.nix
         ./upnp.nix
         ./vscode.nix
+        ./ss.nix
+        ./fail2ban.nix
     ];
 }
