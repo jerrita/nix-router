@@ -1,4 +1,4 @@
-{ pkgs, lib }:
+{ config, pkgs, ... }:
 {
   systemd.network.networks."60-dhcp0" = {
     matchConfig.Name = "wan";
