@@ -1,8 +1,9 @@
 { config, pkgs, ... }:
 {
     environment.systemPackages = with pkgs; [
-        vim
+        neovim
         git
+        lazygit
         wget
         curl
         unzip
