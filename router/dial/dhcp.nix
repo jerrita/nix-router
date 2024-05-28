@@ -1,6 +1,6 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 {
-  systemd.network.networks."60-dhcp0" = {
+  systemd.network.networks."30-wan" = lib.mkForce {
     matchConfig.Name = "wan";
     networkConfig = {
       DHCP = "yes";
