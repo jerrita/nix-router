@@ -34,5 +34,5 @@
   users.users.root.openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINu+Alullj1Meq+a3KNFlIT9lU9YCb8WDr/mZhHCEPji jerrita@mac-air"
   ];
-  system.stateVersion = "24.11";
+  system.stateVersion = "24.05";
 }
