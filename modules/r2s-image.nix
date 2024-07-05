@@ -1,15 +1,20 @@
 { config, lib, pkgs, ... }:
 with lib;
 let
-  rootfsTarball = pkgs.callPackage ${nixpkgs}/nixos/lib/make-system-tarball.nix ({
+  rootfsTarball = pkgs.callPackage "${nixpkgs}/nixos/lib/make-system-tarball.nix" ({
     compressCommand = "";
     compressionExtension = "";
-    extraInputs = [];
+    extraInputs = [ ];
+    contents = [ ];
+    storeContents = [{
+      object = config.system.build.toplevel;
+      symlink = "/run/current-system";
+    }];
   });
 in
 {
   imports = [
-    ${nixpkgs}/nixos/modules/profiles/all-hardware.nix
+    "${nixpkgs}/nixos/modules/profiles/all-hardware.nix"
   ];
 
   options.sdImage = {
@@ -62,7 +67,7 @@ in
     sdImage.storePaths = [ config.system.build.toplevel ];
 
     system.build.sdImage = pkgs.callPackage ({ stdenv, dosfstools, e2fsprogs,
-    mtools, libfaketime, util-linux, zstd }: stdenv.mkDerivation {
+    mtools, libfaketime, util-linux, zstd, f2fs-tools }: stdenv.mkDerivation {
       name = config.sdImage.imageName;
 
       nativeBuildInputs = [ dosfstools e2fsprogs libfaketime mtools util-linux f2fs-tools ]
@@ -95,14 +100,14 @@ in
         loop_dev=$(losetup -f)
         losetup $loop_dev $img
         partx -a $loop_dev
-        mkfs.ext4 -L NIXOS_BOOT ${loop_dev}p1
-        mkfs.f2fs -l NIXOS_SD ${loop_dev}p2
+        mkfs.ext4 -L NIXOS_BOOT ''${loop_dev}p1
+        mkfs.f2fs -l NIXOS_SD ''${loop_dev}p2
 
         # Mount the filesystems
         mkdir -p rootfs
-        mount ${loop_dev}p2 files
+        mount ''${loop_dev}p2 files
         mkdir -p rootfs/boot
-        mount ${loop_dev}p1 rootfs/boot
+        mount ''${loop_dev}p1 rootfs/boot
 
         # Extract the root filesystem
         tar -xf $root_fs -C rootfs
