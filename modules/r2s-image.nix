@@ -2,8 +2,8 @@
 with lib;
 let
   rootfsTarball = pkgs.callPackage "${nixpkgs}/nixos/lib/make-system-tarball.nix" ({
-    compressCommand = "";
-    compressionExtension = "";
+    compressCommand = "gzip";
+    compressionExtension = ".gz";
     extraInputs = [ ];
     contents = [ ];
     storeContents = [{
@@ -67,10 +67,10 @@ in
     sdImage.storePaths = [ config.system.build.toplevel ];
 
     system.build.sdImage = pkgs.callPackage ({ stdenv, dosfstools, e2fsprogs,
-    mtools, libfaketime, util-linux, zstd, f2fs-tools, fakeroot }: stdenv.mkDerivation {
+    mtools, libfaketime, util-linux, zstd, f2fs-tools, parted }: stdenv.mkDerivation {
       name = config.sdImage.imageName;
 
-      nativeBuildInputs = [ dosfstools e2fsprogs libfaketime mtools util-linux f2fs-tools fakeroot ]
+      nativeBuildInputs = [ dosfstools e2fsprogs libfaketime mtools util-linux f2fs-tools parted ]
       ++ lib.optional config.sdImage.compressImage zstd;
 
       inherit (config.sdImage) imageName compressImage;
@@ -97,32 +97,29 @@ in
         parted $img --script mkpart primary 32768s 1081343s
         parted $img --script mkpart primary 1081344s 100%
 
-        echo "Entering fakeroot environment..."
-        fakeroot -- sh -c '
-          # Create the filesystems
-          loop_dev=$(losetup -f)
-          losetup $loop_dev $img
-          partx -a $loop_dev
-          mkfs.ext4 -L NIXOS_BOOT ''${loop_dev}p1
-          mkfs.f2fs -l NIXOS_SD ''${loop_dev}p2
+        # Create the filesystems
+        loop_dev=$(losetup -f)
+        losetup $loop_dev $img
+        partx -a $loop_dev
+        mkfs.ext4 -L NIXOS_BOOT ''${loop_dev}p1
+        mkfs.f2fs -l NIXOS_SD ''${loop_dev}p2
 
-          # Mount the filesystems
-          mkdir -p rootfs
-          mount ''${loop_dev}p2 files
-          mkdir -p rootfs/boot
-          mount ''${loop_dev}p1 rootfs/boot
+        # Mount the filesystems
+        mkdir -p rootfs
+        mount ''${loop_dev}p2 files
+        mkdir -p rootfs/boot
+        mount ''${loop_dev}p1 rootfs/boot
 
-          # Extract the root filesystem
-          tar -xf $root_fs -C rootfs
+        # Extract the root filesystem
+        tar -xf $root_fs -C rootfs
 
-          # make system bootable
-          ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./rootfs/boot
+        # make system bootable
+        ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./rootfs/boot
 
-          # umount the filesystems
-          umount rootfs/boot
-          umount rootfs
-          losetup -d $loop_dev
-        '
+        # umount the filesystems
+        umount rootfs/boot
+        umount rootfs
+        losetup -d $loop_dev
 
         # flash u-boot
         dd if=${./r2s-uboot}/idbloader.img of=$img conv=notrunc seek=64
