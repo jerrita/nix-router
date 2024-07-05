@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, nixpkgs, ... }:
 with lib;
 let
   rootfsTarball = pkgs.callPackage "${nixpkgs}/nixos/lib/make-system-tarball.nix" ({
@@ -14,7 +14,7 @@ let
 in
 {
   imports = [
-    "${nixpkgs}/nixos/modules/profiles/all-hardware.nix"
+    # "${nixpkgs}/nixos/modules/profiles/all-hardware.nix"
   ];
 
   options.sdImage = {
@@ -67,10 +67,10 @@ in
     sdImage.storePaths = [ config.system.build.toplevel ];
 
     system.build.sdImage = pkgs.callPackage ({ stdenv, dosfstools, e2fsprogs,
-    mtools, libfaketime, util-linux, zstd, f2fs-tools }: stdenv.mkDerivation {
+    mtools, libfaketime, util-linux, zstd, f2fs-tools, fakeroot }: stdenv.mkDerivation {
       name = config.sdImage.imageName;
 
-      nativeBuildInputs = [ dosfstools e2fsprogs libfaketime mtools util-linux f2fs-tools ]
+      nativeBuildInputs = [ dosfstools e2fsprogs libfaketime mtools util-linux f2fs-tools fakeroot ]
       ++ lib.optional config.sdImage.compressImage zstd;
 
       inherit (config.sdImage) imageName compressImage;
@@ -86,9 +86,10 @@ in
           echo "file sd-image $img" >> $out/nix-support/hydra-build-products
         fi
 
-        root_fs=${rootfsTarball}  # xxx.tar
+        root_fs=${rootfsTarball}/tarball/nixos-system-aarch64-linux.tar.gz
         tarballSize=$(stat -c %s $root_fs)
-        rootfsSize=$($tarballSize + 32 * 1024 * 1024)
+        rootfsSize=$(($tarballSize + 32 * 1024 * 1024))
+        echo "Root filesystem size: $rootfsSize"
 
         # Create the image file
         fallocate -l $rootfsSize $img
@@ -96,29 +97,32 @@ in
         parted $img --script mkpart primary 32768s 1081343s
         parted $img --script mkpart primary 1081344s 100%
 
-        # Create the filesystems
-        loop_dev=$(losetup -f)
-        losetup $loop_dev $img
-        partx -a $loop_dev
-        mkfs.ext4 -L NIXOS_BOOT ''${loop_dev}p1
-        mkfs.f2fs -l NIXOS_SD ''${loop_dev}p2
+        echo "Entering fakeroot environment..."
+        fakeroot -- sh -c '
+          # Create the filesystems
+          loop_dev=$(losetup -f)
+          losetup $loop_dev $img
+          partx -a $loop_dev
+          mkfs.ext4 -L NIXOS_BOOT ''${loop_dev}p1
+          mkfs.f2fs -l NIXOS_SD ''${loop_dev}p2
 
-        # Mount the filesystems
-        mkdir -p rootfs
-        mount ''${loop_dev}p2 files
-        mkdir -p rootfs/boot
-        mount ''${loop_dev}p1 rootfs/boot
+          # Mount the filesystems
+          mkdir -p rootfs
+          mount ''${loop_dev}p2 files
+          mkdir -p rootfs/boot
+          mount ''${loop_dev}p1 rootfs/boot
 
-        # Extract the root filesystem
-        tar -xf $root_fs -C rootfs
+          # Extract the root filesystem
+          tar -xf $root_fs -C rootfs
 
-        # make system bootable
-        ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./rootfs/boot
+          # make system bootable
+          ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./rootfs/boot
 
-        # umount the filesystems
-        umount rootfs/boot
-        umount rootfs
-        losetup -d $loop_dev
+          # umount the filesystems
+          umount rootfs/boot
+          umount rootfs
+          losetup -d $loop_dev
+        '
 
         # flash u-boot
         dd if=${./r2s-uboot}/idbloader.img of=$img conv=notrunc seek=64
