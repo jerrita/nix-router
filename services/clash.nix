@@ -20,7 +20,7 @@
     systemd.services.clash = {
         wantedBy = [ "multi-user.target" ];
         wants = [ "network-online.target" ];
-        after = [ "network-online.target" ];
+        after = [ "dnsmasq.service" ];
         description = "Clash Service";
         path = [ pkgs.bash ];
         serviceConfig = {

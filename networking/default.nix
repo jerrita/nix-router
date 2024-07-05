@@ -27,12 +27,14 @@
 
   networking = {
     firewall.enable = false;
+    resolvconf.enable = false;
     useDHCP = false;
     nftables = {
       enable = true;
-      rules = ''
+      ruleset = ''
         include "/etc/firewall.nft";
       '';
+      checkRuleset = false;
     };
   };
 

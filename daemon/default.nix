@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 {
     systemd.services."router-earlyup" = {
         description = "NixRouter early up | File registration";
@@ -17,6 +17,7 @@
     systemd.services."router-daemon" = {
         description = "NixRouter | Daemon";
         wantedBy = [ "multi-user.target" ];
+        wants = [ "network-online.target" ];
         after = [ "network-online.target" ];
         path = [ pkgs.bash ];
         serviceConfig = {

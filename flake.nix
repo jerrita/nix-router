@@ -19,7 +19,7 @@
         # utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
     };
 
-    outputs = { self, nixpkgs, scripts } @ inputs: {
+    outputs = { self, nixpkgs, scripts } @ inputs: rec {
         nixosConfigurations.r2s = nixpkgs.lib.nixosSystem {
             system = "aarch64-linux";
             specialArgs = {inherit nixpkgs;};
