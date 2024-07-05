@@ -16,53 +16,52 @@
             url = "github:jerrita/scripts";
             inputs.nixpkgs.follows = "nixpkgs";
         };
-        utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
+        # utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
     };
 
-    # outputs = { self, nixpkgs, scripts } @ inputs: 
-    # let 
-    #     pkgs = import nixpkgs { allowUnfree = true; };
-    # in rec {
-    #     nixosConfigurations.r2s = nixpkgs.lib.nixosSystem {
-    #         system = "aarch64-linux";
-    #         specialArgs = {inherit nixpkgs;};
-    #         modules = [
-    #             ./hardware/r2s.nix
-    #             ./router
-    #             scripts.nixosModules.ddns
-    #         ];
-    #     };
-    #     nixosConfigurations.esxi = nixpkgs.lib.nixosSystem {
-    #         system = "x86_64-linux";
-    #         specialArgs = {inherit nixpkgs;};
-    #         modules = [
-    #             ./hardware/esxi.nix
-    #             ./router
-    #             scripts.nixosModules.ddns
-    #         ];
-    #     };
-    # };
+    outputs = { self, nixpkgs, scripts } @ inputs: {
+        nixosConfigurations.r2s = nixpkgs.lib.nixosSystem {
+            system = "aarch64-linux";
+            specialArgs = {inherit nixpkgs;};
+            modules = [
+                ./hardware/r2s.nix
+                ./router
+                scripts.nixosModules.ddns
+            ];
+        };
+        images.r2s = nixosConfigurations.r2s.config.system.build.sdImage;
 
-    outputs = { self, nixpkgs, scripts, utils, ... } @ inputs:
-        utils.lib.mkFlake 
-    {
-        inherit self inputs;
-
-        channelsConfig.allowUnfree = true;
-        hostDefaults.modules = [ 
-            ./router
-            scripts.nixosModules.ddns
-        ];
-
-        channels.patched.input = nixpkgs;
-        # channels.patched.patches = [ ];
-
-        hosts.esxi = {
+        nixosConfigurations.esxi = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
-            channelName = "patched";
+            specialArgs = {inherit nixpkgs;};
             modules = [
                 ./hardware/esxi.nix
+                ./router
+                scripts.nixosModules.ddns
             ];
         };
     };
+
+    # outputs = { self, nixpkgs, scripts, utils, ... } @ inputs:
+    #     utils.lib.mkFlake 
+    # {
+    #     inherit self inputs;
+
+    #     channelsConfig.allowUnfree = true;
+    #     hostDefaults.modules = [ 
+    #         ./router
+    #         scripts.nixosModules.ddns
+    #     ];
+
+    #     channels.patched.input = nixpkgs;
+    #     # channels.patched.patches = [ ];
+
+    #     hosts.esxi = {
+    #         system = "x86_64-linux";
+    #         channelName = "patched";
+    #         modules = [
+    #             ./hardware/esxi.nix
+    #         ];
+    #     };
+    # };
 }

@@ -3,11 +3,12 @@
   imports =
     [ ./kernel.nix
       
-      ./dial/pppoe.nix
+      ./dial/dhcp.nix
 
       ../common
       ../networking
       ../services
+      ../daemon
     ];
 
   boot.kernelPackages = lib.mkDefault pkgs.linuxPackages_latest;

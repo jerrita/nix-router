@@ -5,7 +5,7 @@ let
         set -e
 
         if ! nft list flowtable inet global f &> /dev/null; then
-            nft add flowtable inet global f { hook ingress priority filter\; devices = { lan, ppp0 }\; }
+            nft add flowtable inet global f { hook ingress priority filter\; devices = { lan, wan, ppp0 }\; }
         fi
 
         if ! nft list chain inet global forward | grep -q flow; then
