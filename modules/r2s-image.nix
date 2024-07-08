@@ -1,16 +1,11 @@
 { config, lib, pkgs, nixpkgs, ... }:
 with lib;
 let
-  rootfsTarball = pkgs.callPackage "${nixpkgs}/nixos/lib/make-system-tarball.nix" ({
-    compressCommand = "gzip";
-    compressionExtension = ".gz";
-    extraInputs = [ ];
-    contents = [ ];
-    storeContents = [{
-      object = config.system.build.toplevel;
-      symlink = "/run/current-system";
-    }];
-  });
+  rootfsImage = pkgs.callPackage "${nixpkgs}/nixos/lib/make-ext4-fs.nix" ({
+    inherit (config.sdImage) storePaths;
+    compressImage = false;
+    volumeLabel = "NIXOS_SD";
+  })
 in
 {
   imports = [
@@ -51,7 +46,6 @@ in
   };
 
   config = {
-    environment.systemPackages = [ pkgs.f2fs-tools ];
     fileSystems = {
       "/boot" = {
         device = "/dev/disk/by-label/NIXOS_BOOT";
@@ -59,18 +53,18 @@ in
       };
       "/" = {
         device = "/dev/disk/by-label/NIXOS_SD";
-        fsType = "f2fs";
-        options = [ "compress_algorithm=lz4" "compress_chksum" "atgc" "gc_merge" "lazytime" ];
+        fsType = "ext4";  # f2fs
+        # options = [ "compress_algorithm=lz4" "compress_chksum" "atgc" "gc_merge" "lazytime" ];
       };
     };
 
     sdImage.storePaths = [ config.system.build.toplevel ];
 
     system.build.sdImage = pkgs.callPackage ({ stdenv, dosfstools, e2fsprogs,
-    mtools, libfaketime, util-linux, zstd, f2fs-tools, parted }: stdenv.mkDerivation {
+    mtools, libfaketime, util-linux, zstd, parted }: stdenv.mkDerivation {
       name = config.sdImage.imageName;
 
-      nativeBuildInputs = [ dosfstools e2fsprogs libfaketime mtools util-linux f2fs-tools parted ]
+      nativeBuildInputs = [ dosfstools e2fsprogs libfaketime mtools util-linux parted ]
       ++ lib.optional config.sdImage.compressImage zstd;
 
       inherit (config.sdImage) imageName compressImage;
@@ -86,40 +80,36 @@ in
           echo "file sd-image $img" >> $out/nix-support/hydra-build-products
         fi
 
-        root_fs=${rootfsTarball}/tarball/nixos-system-aarch64-linux.tar.gz
-        tarballSize=$(stat -c %s $root_fs)
-        rootfsSize=$(($tarballSize + 32 * 1024 * 1024))
-        echo "Root filesystem size: $rootfsSize"
+        # make boot image
+        mkdir -p boot
+        ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./boot
+
+        # Make a crude approximation of the size of the target image.
+        # If the script starts failing, increase the fudge factors here.
+        numInodes=$(find ./boot | wc -l)
+        numDataBlocks=$(du -s -c -B 4096 --apparent-size ./boot | tail -1 | awk '{ print int($1 * 1.10) }')
+        bytes=$((2 * 4096 * $numInodes + 4096 * $numDataBlocks))
+        echo "Creating an EXT4 image (boot) of $bytes bytes (numInodes=$numInodes, numDataBlocks=$numDataBlocks)"
+        truncate -s $bytes boot.img
+        mkfs.ext4 -L NIXOS_BOOT -d ./boot boot.img
+
+        root_fs=${rootfsImage}
+        rootSizeBlocks=$(du -B 512 --apparent-size $root_fs | awk '{ print $1 }')
+        bootSizeBlocks=$(du -B 512 --apparent-size boot.img | awk '{ print $1 }')
+        imageSize=$((rootSizeBlocks * 512 + bootSizeBlocks * 512 + 32768 * 512))
+        echo "Root filesystem size: $rootfsSize, boot filesystem size: $bootSize, image size: $imageSize"
 
         # Create the image file
-        fallocate -l $rootfsSize $img
-        parted $img --script mklabel msdos
-        parted $img --script mkpart primary 32768s 1081343s
-        parted $img --script mkpart primary 1081344s 100%
+        truncate -s $imageSize $img
+        parted --script $img mklabel msdos
+        parted --script $img mkpart primary ext4 32768s $((32768 + bootSizeBlocks))s
+        parted --script $img mkpart primary ext4 $((32769 + bootSizeBlocks))s -1
+        
+        # Copy the boot partition to 32768s
+        dd if=boot.img of=$img conv=notrunc bs=512 seek=32768
 
-        # Create the filesystems
-        loop_dev=$(losetup -f)
-        losetup $loop_dev $img
-        partx -a $loop_dev
-        mkfs.ext4 -L NIXOS_BOOT ''${loop_dev}p1
-        mkfs.f2fs -l NIXOS_SD ''${loop_dev}p2
-
-        # Mount the filesystems
-        mkdir -p rootfs
-        mount ''${loop_dev}p2 files
-        mkdir -p rootfs/boot
-        mount ''${loop_dev}p1 rootfs/boot
-
-        # Extract the root filesystem
-        tar -xf $root_fs -C rootfs
-
-        # make system bootable
-        ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./rootfs/boot
-
-        # umount the filesystems
-        umount rootfs/boot
-        umount rootfs
-        losetup -d $loop_dev
+        # Copy the root filesystem beside it
+        dd if=$root_fs of=$img conv=notrunc bs=512 seek=$((32769 + bootSizeBlocks))
 
         # flash u-boot
         dd if=${./r2s-uboot}/idbloader.img of=$img conv=notrunc seek=64

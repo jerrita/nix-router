@@ -88,7 +88,7 @@ in {
       };
     };
 
-    supportedFilesystems = [ "ext4" "vfat" "f2fs" ];
+    supportedFilesystems = [ "ext4" "vfat" ];
     kernelParams = [
       "console=ttyS2,1500000"
       "earlycon=uart8250,mmio32,0xff130000"
