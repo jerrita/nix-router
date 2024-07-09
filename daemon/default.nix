@@ -4,7 +4,7 @@
         description = "NixRouter early up | File registration";
         serviceConfig = { Type = "oneshot"; };
         wantedBy = [ "multi-user.target" ];
-        before = [ "network-online.target" ];
+        before = [ "network-online.target" "nftables.service" ];
         script = ''
             if [ ! -d /daemon ]; then
                 echo "First boot, copying files..."
