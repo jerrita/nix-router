@@ -11,5 +11,6 @@
         # ./vscode.nix
         # ./ss.nix
         # ./fail2ban.nix
+        # ./wireguard.nix
     ];
 }
