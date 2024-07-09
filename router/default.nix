@@ -11,7 +11,7 @@
       ../daemon
     ];
 
-  boot.kernelPackages = lib.mkDefault pkgs.linuxPackages_xanmod_latest;
+  boot.kernelPackages = lib.mkDefault pkgs.linuxPackages_latest;
 
   nix.settings = {
     experimental-features = ["nix-command" "flakes"];
