@@ -21,6 +21,18 @@ in {
     ../modules/r2s-image.nix
   ];
 
+  fileSystems = {
+    "/boot" = {
+      device = "/dev/disk/by-label/NIXOS_BOOT";
+      fsType = "ext4";
+    };
+    "/" = {
+      device = "/dev/disk/by-label/NIXOS_SD";
+      fsType = "ext4"; # f2fs
+      # options = [ "compress_algorithm=lz4" "compress_chksum" "atgc" "gc_merge" "lazytime" ];
+    };
+  };
+
   # system.enableExtlinuxTarball = true;
   networking.useDHCP = lib.mkDefault true;
 

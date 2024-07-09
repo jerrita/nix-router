@@ -104,20 +104,17 @@ in
           root_fs=${rootfsImage}
           rootSizeBlocks=$(du -B 512 --apparent-size $root_fs | awk '{ print $1 }')
           bootSizeBlocks=$(du -B 512 --apparent-size boot.img | awk '{ print $1 }')
-          imageSize=$((rootSizeBlocks * 512 + bootSizeBlocks * 512 + 32768 * 512 + 32 * 1024 * 1024))
-          echo "Root filesystem size: $rootSizeBlocks, boot filesystem size: $bootSizeBlocks, image size: $imageSize"
+          imageSize=$((rootSizeBlocks * 512 + 557056 * 512 + 32 * 1024 * 1024))
+          echo "Root filesystem blocks: $rootSizeBlocks, boot filesystem blocks: $bootSizeBlocks, image size: $imageSize"
 
           # Create the image file
           truncate -s $imageSize $img
           parted $img --script mklabel msdos
-          parted $img --script mkpart primary ext4 32768s $((32768 + bootSizeBlocks))s
-          parted $img --script mkpart primary ext4 $((32769 + bootSizeBlocks))s 100%
+          parted $img --script mkpart primary ext4 32768s 557056s
+          parted $img --script mkpart primary ext4 557057s 100%
 
-          # Copy the boot partition to 32768s
           dd if=boot.img of=$img conv=notrunc bs=512 seek=32768
-
-          # Copy the root filesystem beside it
-          dd if=$root_fs of=$img conv=notrunc bs=512 seek=$((32769 + bootSizeBlocks))
+          dd if=$root_fs of=$img conv=notrunc bs=512 seek=524289
 
           # flash u-boot
           dd if=${./r2s-uboot}/idbloader.img of=$img conv=notrunc seek=64
