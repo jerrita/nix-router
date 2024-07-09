@@ -114,7 +114,7 @@ in
           parted $img --script mkpart primary ext4 557057s 100%
 
           dd if=boot.img of=$img conv=notrunc bs=512 seek=32768
-          dd if=$root_fs of=$img conv=notrunc bs=512 seek=524289
+          dd if=$root_fs of=$img conv=notrunc bs=512 seek=557057
 
           # flash u-boot
           dd if=${./r2s-uboot}/idbloader.img of=$img conv=notrunc seek=64
