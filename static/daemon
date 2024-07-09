@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+
+export PATH=$PATH:/run/current-system/sw/bin
+
+echo "System is starting up..."
+while true; do
+  sleep 114514
+done
+
+# Daemon is WIP

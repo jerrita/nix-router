@@ -14,17 +14,27 @@ let
     ethtool -G lan tx 1024
     ethtool -G lan rx 1024
     ethtool -G wan rx 4096
-    if [ -f /etc/init.sh ]; then
-      echo "Run /etc/init.sh..."
-      bash /etc/init.sh
-    fi
   '';
 in {
   imports = [ 
-    ../modules/extlinux.nix
+    # ../modules/extlinux.nix
+    ../modules/r2s-image.nix
   ];
 
-  system.enableExtlinuxTarball = true;
+  fileSystems = {
+    "/boot" = {
+      device = "/dev/disk/by-label/NIXOS_BOOT";
+      fsType = "ext4";
+    };
+    "/" = {
+      device = "/dev/disk/by-label/NIXOS_SD";
+      fsType = "ext4"; # f2fs
+      # options = [ "compress_algorithm=lz4" "compress_chksum" "atgc" "gc_merge" "lazytime" ];
+    };
+  };
+
+  # system.enableExtlinuxTarball = true;
+  networking.useDHCP = lib.mkDefault true;
 
   zramSwap = {
     enable = true;
@@ -80,18 +90,6 @@ in {
     )
   ];
 
-  fileSystems = {
-    "/boot" = {
-      device = "/dev/disk/by-label/NIXOS_BOOT";
-      fsType = "ext4";
-    };
-    "/" = {
-      device = "/dev/disk/by-label/NIXOS_SD";
-      fsType = "f2fs";
-      options = [ "compress_algorithm=lz4" "compress_chksum" "atgc" "gc_merge" "lazytime" ];
-    };
-  };
-
   boot = {
     loader = {
       timeout = 1;
@@ -102,7 +100,7 @@ in {
       };
     };
 
-    supportedFilesystems = [ "ext4" "vfat" "f2fs" "cifs" ];
+    supportedFilesystems = [ "ext4" "vfat" ];
     kernelParams = [
       "console=ttyS2,1500000"
       "earlycon=uart8250,mmio32,0xff130000"
@@ -137,24 +135,15 @@ in {
     ConnectionRetrySec=3
   '';
 
-  networking.timeServers = [
-    "ntp.aliyun.com"
-    "ntp1.aliyun.com"
-    "ntp2.aliyun.com"
-    "ntp3.aliyun.com"
-    "ntp4.aliyun.com"
-    "ntp5.aliyun.com"
-    "ntp6.aliyun.com"
-    "ntp7.aliyun.com"
-  ];
+  nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
 
-  systemd.services."wait-system-running" = {
-    description = "Wait system running";
-    serviceConfig = { Type = "simple"; };
-    script = ''
-      systemctl is-system-running --wait
-    '';
-  };
+  # systemd.services."wait-system-running" = {
+  #   description = "Wait system running";
+  #   serviceConfig = { Type = "simple"; };
+  #   script = ''
+  #     systemctl is-system-running --wait
+  #   '';
+  # };
 
   systemd.services."setup-net-leds" = {
     description = "Setup network LEDs";
@@ -163,7 +152,6 @@ in {
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
     script = ''
-      ${pkgs.kmod}/bin/modprobe ledtrig_netdev
       cd /sys/class/leds/nanopi-r2s:green:lan
       echo netdev > trigger
       echo 1 | tee link tx rx >/dev/null

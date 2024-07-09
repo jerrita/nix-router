@@ -8,7 +8,7 @@
 
 ## Dial
 
-- 拨号方式在 router/default.nix 中在 pppoe 和 dhcp (未实现) 中选一个
+- 拨号方式在 router/default.nix 中在 pppoe 和 dhcp 中选一个
 - 自行编辑 router/dial/pppoe.nix 填入用户名密码
 
 ## Clash
@@ -44,4 +44,4 @@ else
 fi
 ```
 
-2. 可动态加一些 dnsmasq 规则在 `/etc/dnsmasq-conf.conf` 中。
+1. 可动态加一些 dnsmasq 规则在 `/etc/dnsmasq.conf` 中。

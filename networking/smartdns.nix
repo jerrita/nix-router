@@ -8,12 +8,7 @@
             log-size = "512K";
             mdns-lookup = "yes";
 
-            server = [
-                "61.132.163.68"
-                "202.102.213.68"
-                "223.5.5.5 -bootstrap-dns"
-            ];
-            dualstack-ip-selection = "yes";
+            conf-file = "/etc/smartdns/server.conf";
 
             cache-size = 32768;
             cache-persist = "yes";
