@@ -5,7 +5,7 @@ let
     inherit (config.sdImage) storePaths;
     compressImage = false;
     volumeLabel = "NIXOS_SD";
-  })
+  });
 in
 {
   imports = [
@@ -53,73 +53,82 @@ in
       };
       "/" = {
         device = "/dev/disk/by-label/NIXOS_SD";
-        fsType = "ext4";  # f2fs
+        fsType = "ext4"; # f2fs
         # options = [ "compress_algorithm=lz4" "compress_chksum" "atgc" "gc_merge" "lazytime" ];
       };
     };
 
     sdImage.storePaths = [ config.system.build.toplevel ];
 
-    system.build.sdImage = pkgs.callPackage ({ stdenv, dosfstools, e2fsprogs,
-    mtools, libfaketime, util-linux, zstd, parted }: stdenv.mkDerivation {
-      name = config.sdImage.imageName;
+    system.build.sdImage = pkgs.callPackage
+      ({ stdenv
+       , dosfstools
+       , e2fsprogs
+       , mtools
+       , libfaketime
+       , util-linux
+       , zstd
+       , parted
+       }: stdenv.mkDerivation {
+        name = config.sdImage.imageName;
 
-      nativeBuildInputs = [ dosfstools e2fsprogs libfaketime mtools util-linux parted ]
-      ++ lib.optional config.sdImage.compressImage zstd;
+        nativeBuildInputs = [ dosfstools e2fsprogs libfaketime mtools util-linux parted ]
+          ++ lib.optional config.sdImage.compressImage zstd;
 
-      inherit (config.sdImage) imageName compressImage;
+        inherit (config.sdImage) imageName compressImage;
 
-      buildCommand = ''
-        mkdir -p $out/nix-support $out/sd-image
-        export img=$out/sd-image/${config.sdImage.imageName}
+        buildCommand = ''
+          mkdir -p $out/nix-support $out/sd-image
+          export img=$out/sd-image/${config.sdImage.imageName}
 
-        echo "${pkgs.stdenv.buildPlatform.system}" > $out/nix-support/system
-        if test -n "$compressImage"; then
-          echo "file sd-image $img.zst" >> $out/nix-support/hydra-build-products
-        else
-          echo "file sd-image $img" >> $out/nix-support/hydra-build-products
-        fi
+          echo "${pkgs.stdenv.buildPlatform.system}" > $out/nix-support/system
+          if test -n "$compressImage"; then
+            echo "file sd-image $img.zst" >> $out/nix-support/hydra-build-products
+          else
+            echo "file sd-image $img" >> $out/nix-support/hydra-build-products
+          fi
 
-        # make boot image
-        mkdir -p boot
-        ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./boot
+          # make boot image
+          mkdir -p boot
+          ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./boot
 
-        # Make a crude approximation of the size of the target image.
-        # If the script starts failing, increase the fudge factors here.
-        numInodes=$(find ./boot | wc -l)
-        numDataBlocks=$(du -s -c -B 4096 --apparent-size ./boot | tail -1 | awk '{ print int($1 * 1.10) }')
-        bytes=$((2 * 4096 * $numInodes + 4096 * $numDataBlocks))
-        echo "Creating an EXT4 image (boot) of $bytes bytes (numInodes=$numInodes, numDataBlocks=$numDataBlocks)"
-        truncate -s $bytes boot.img
-        mkfs.ext4 -L NIXOS_BOOT -d ./boot boot.img
+          # Make a crude approximation of the size of the target image.
+          # If the script starts failing, increase the fudge factors here.
+          numInodes=$(find ./boot | wc -l)
+          numDataBlocks=$(du -s -c -B 4096 --apparent-size ./boot | tail -1 | awk '{ print int($1 * 1.10) }')
+          bytes=$((2 * 4096 * $numInodes + 4096 * $numDataBlocks))
+          echo "Creating an EXT4 image (boot) of $bytes bytes (numInodes=$numInodes, numDataBlocks=$numDataBlocks)"
+          truncate -s $bytes boot.img
+          mkfs.ext4 -L NIXOS_BOOT -d ./boot boot.img
 
-        root_fs=${rootfsImage}
-        rootSizeBlocks=$(du -B 512 --apparent-size $root_fs | awk '{ print $1 }')
-        bootSizeBlocks=$(du -B 512 --apparent-size boot.img | awk '{ print $1 }')
-        imageSize=$((rootSizeBlocks * 512 + bootSizeBlocks * 512 + 32768 * 512))
-        echo "Root filesystem size: $rootfsSize, boot filesystem size: $bootSize, image size: $imageSize"
+          root_fs=${rootfsImage}
+          rootSizeBlocks=$(du -B 512 --apparent-size $root_fs | awk '{ print $1 }')
+          bootSizeBlocks=$(du -B 512 --apparent-size boot.img | awk '{ print $1 }')
+          imageSize=$((rootSizeBlocks * 512 + bootSizeBlocks * 512 + 32768 * 512 + 32 * 1024 * 1024))
+          echo "Root filesystem size: $rootSizeBlocks, boot filesystem size: $bootSizeBlocks, image size: $imageSize"
 
-        # Create the image file
-        truncate -s $imageSize $img
-        parted --script $img mklabel msdos
-        parted --script $img mkpart primary ext4 32768s $((32768 + bootSizeBlocks))s
-        parted --script $img mkpart primary ext4 $((32769 + bootSizeBlocks))s -1
-        
-        # Copy the boot partition to 32768s
-        dd if=boot.img of=$img conv=notrunc bs=512 seek=32768
+          # Create the image file
+          truncate -s $imageSize $img
+          parted $img --script mklabel msdos
+          parted $img --script mkpart primary ext4 32768s $((32768 + bootSizeBlocks))s
+          parted $img --script mkpart primary ext4 $((32769 + bootSizeBlocks))s 100%
 
-        # Copy the root filesystem beside it
-        dd if=$root_fs of=$img conv=notrunc bs=512 seek=$((32769 + bootSizeBlocks))
+          # Copy the boot partition to 32768s
+          dd if=boot.img of=$img conv=notrunc bs=512 seek=32768
 
-        # flash u-boot
-        dd if=${./r2s-uboot}/idbloader.img of=$img conv=notrunc seek=64
-        dd if=${./r2s-uboot}/u-boot.itb of=$img conv=notrunc seek=16384
+          # Copy the root filesystem beside it
+          dd if=$root_fs of=$img conv=notrunc bs=512 seek=$((32769 + bootSizeBlocks))
 
-        if test -n "$compressImage"; then
-            zstd -T$NIX_BUILD_CORES --rm $img
-        fi
-      '';
-    }) {};
+          # flash u-boot
+          dd if=${./r2s-uboot}/idbloader.img of=$img conv=notrunc seek=64
+          dd if=${./r2s-uboot}/u-boot.itb of=$img conv=notrunc seek=16384
+
+          if test -n "$compressImage"; then
+              zstd -T$NIX_BUILD_CORES --rm $img
+          fi
+        '';
+      })
+      { };
 
     boot.postBootCommands = ''
       # On the first boot do some maintenance tasks
