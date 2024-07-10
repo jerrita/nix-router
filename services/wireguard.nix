@@ -1,20 +1,30 @@
 { config, pkgs, ... }:
 {
-    networking.wg-quick.interfaces = {
-        wg0 = {
-            address = [
-                ""
-            ];
-            peers = [
-                {
-                    allowedIPs = [
-                        ""
-                    ];
-                    endpoint = "";
-                    publicKey = "";
-                }
-            ];
-            privateKey = "";
+    systemd.services.wireguard = {
+        wantedBy = [ "multi-user.target" ];
+        wants = [ "network-online.target" ];
+        after = [ "network.target" "network-online.target" ];
+        description = "Wireguard Service";
+        path = with pkgs; [ wireguard-tools ];
+        serviceConfig = {
+            Type = "oneshot";
+            script = ''
+                ${pkgs.kmod}/bin/modprobe wireguard
+                mkdir -p /etc/wireguard
+                for conf in /etc/wireguard/*.conf; do
+                    interface=$(basename $conf .conf)
+                    wg-quick up $interface
+                done
+            '';
+            preStop = ''
+                for conf in /etc/wireguard/*.conf; do
+                    interface=$(basename $conf .conf)
+                    wg-quick down $interface
+                done
+            '';
+            PrivateTmp = true;
+            RemainAfterExit = true;
         };
     };
+    environment.systemPackages = [ pkgs.wireguard-tools ];
 }

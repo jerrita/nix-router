@@ -34,6 +34,5 @@
         screen
         gnumake
         socat
-        wireguard-tools
     ];
 }
