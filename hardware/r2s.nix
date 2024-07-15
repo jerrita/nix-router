@@ -22,9 +22,10 @@ in {
   ];
 
   boot.kernelPatches = [
-    { name = "enable-bbr3"; patch = ../patches/bbr3.patch }
+    { name = "enable-bbr3"; patch = ../patches/bbr3.patch; }
     {
       name = "hack";
+      patch = null;
       # build reduced kernel to reduce compilation time
       extraStructuredConfig =
         let
