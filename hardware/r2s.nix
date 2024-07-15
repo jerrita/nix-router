@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }: 
+{ config, pkgs, lib, ... }:
 let
   tuningScript = pkgs.writeScript "tuning" ''
     #!/usr/bin/env bash
@@ -15,12 +15,19 @@ let
     ethtool -G lan rx 1024
     ethtool -G wan rx 4096
   '';
+  kernel_ccache = pkgs.linuxPackages_latest.kernel.override {
+    stdenv = pkgs.ccacheStdenv;
+    buildPackages = pkgs.buildPackages // {
+      stdenv = pkgs.ccacheStdenv;
+    };
+  };
 in {
-  imports = [ 
+  imports = [
     # ../modules/extlinux.nix
     ../modules/r2s-image.nix
   ];
 
+  boot.kernelPackages = pkgs.linuxPackagesFor kernel_ccache;
   boot.kernelPatches = [
     { name = "enable-bbr3"; patch = ../patches/bbr3.patch; }
     {
@@ -131,6 +138,30 @@ in {
     zfs = super.zfs.overrideAttrs(_: {
       meta.platforms = [];
     });
+    ccacheWrapper = super.ccacheWrapper.override {
+        extraConfig = ''
+          export CCACHE_COMPRESS=1
+          export CCACHE_DIR="/nix/var/cache/ccache"
+          export CCACHE_SLOPPINESS=random_seed
+          export CCACHE_UMASK=007
+          if [ ! -d "$CCACHE_DIR" ]; then
+            echo "====="
+            echo "Directory '$CCACHE_DIR' does not exist"
+            echo "Please create it with:"
+            echo "  sudo mkdir -m0770 '$CCACHE_DIR'"
+            echo "  sudo chown root:nixbld '$CCACHE_DIR'"
+            echo "====="
+            exit 1
+          fi
+          if [ ! -w "$CCACHE_DIR" ]; then
+            echo "====="
+            echo "Directory '$CCACHE_DIR' is not accessible for user $(whoami)"
+            echo "Please verify its access permissions"
+            echo "====="
+            exit 1
+          fi
+        '';
+    };
   })];
 
   systemd.services.tuning = {

@@ -13,7 +13,7 @@
       };
       "30-lan" = {
         matchConfig.Name = "lan";
-        address = [ "192.168.5.1/24" ];
+        address = [ "192.168.5.1/24" "fc00:cafe::1/48" ];
         networkConfig = {
           ConfigureWithoutCarrier = true;
           DHCPPrefixDelegation = true;

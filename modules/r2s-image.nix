@@ -96,7 +96,7 @@ in
           # If the script starts failing, increase the fudge factors here.
           numInodes=$(find ./boot | wc -l)
           numDataBlocks=$(du -s -c -B 4096 --apparent-size ./boot | tail -1 | awk '{ print int($1 * 1.10) }')
-          bytes=$((2 * 4096 * $numInodes + 4096 * $numDataBlocks))
+          bytes=$((2 * 4096 * $numInodes + 4096 * $numDataBlocks + 8 * 1024 * 1024))
           echo "Creating an EXT4 image (boot) of $bytes bytes (numInodes=$numInodes, numDataBlocks=$numDataBlocks)"
           truncate -s $bytes boot.img
           mkfs.ext4 -L NIXOS_BOOT -d ./boot boot.img
