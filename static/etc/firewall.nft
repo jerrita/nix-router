@@ -36,5 +36,6 @@ table inet global {
     chain postrouting {
         type nat hook postrouting priority filter; policy accept;
         ip saddr 192.168.5.0/24 oifname { wan, ppp0 } counter masquerade
+        ip6 saddr fc00:cafe::/48 oifname wan counter masquerade
     }
 }
