@@ -141,8 +141,7 @@ in {
     ccacheWrapper = super.ccacheWrapper.override {
         extraConfig = ''
           export CCACHE_COMPRESS=1
-          export CCACHE_DIR="/nix/var/cache/ccache"
-          export CCACHE_SLOPPINESS=random_seed
+          export CCACHE_DIR="${config.programs.ccache.cacheDir}"
           export CCACHE_UMASK=007
           if [ ! -d "$CCACHE_DIR" ]; then
             echo "====="
