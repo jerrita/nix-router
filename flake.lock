@@ -1,0 +1,62 @@
+{
+  "nodes": {
+    "jerrita": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1721373569,
+        "narHash": "sha256-ewy0kuFgR+KdKJd5wxQDDOAoPPindH8/gZomv8NpXXM=",
+        "owner": "jerrita",
+        "repo": "nur",
+        "rev": "ed89774a24e3e959048c8c007cba26a10f6a1796",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jerrita",
+        "repo": "nur",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1721116560,
+        "narHash": "sha256-++TYlGMAJM1Q+0nMVaWBSEvEUjRs7ZGiNQOpqbQApCU=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "9355fa86e6f27422963132c2c9aeedb0fb963d93",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1721345296,
+        "narHash": "sha256-wcH/XXJBJElEwZKBORBIGl+t/e6OMiZ7UeGJPsksF60=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "3b24ff7508fc76bfcd203d50a37793ada396ca39",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable-small",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "jerrita": "jerrita",
+        "nixpkgs": "nixpkgs_2"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
