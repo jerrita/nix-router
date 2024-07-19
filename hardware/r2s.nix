@@ -1,4 +1,4 @@
-{ pkgs, lib, linux_r2s, ... }:
+{ pkgs, lib, jerrita, ... }:
 let
   tuningScript = pkgs.writeScript "tuning" ''
     #!/usr/bin/env bash
@@ -23,7 +23,7 @@ in
     ../modules/r2s-image.nix
   ];
 
-  boot.kernelPackages = linux_r2s.kernel;
+  boot.kernelPackages = pkgs.linuxPackagesFor jerrita.packages.aarch64-linux.linux_r2s;
 
   fileSystems = {
     "/boot" = {
