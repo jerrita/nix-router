@@ -23,7 +23,7 @@ in
     ../modules/r2s-image.nix
   ];
 
-  boot.kernelPackages = pkgs.linuxPackagesFor jerrita.packages.aarch64-linux.linux_r2s;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   fileSystems = {
     "/boot" = {
