@@ -1,4 +1,4 @@
-{ pkgs, lib, jerrita, ... }:
+{ pkgs, lib, ... }:
 let
   tuningScript = pkgs.writeScript "tuning" ''
     #!/usr/bin/env bash

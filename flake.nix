@@ -16,19 +16,18 @@
   };
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
     # scripts = {
     #   url = "github:jerrita/scripts";
     #   inputs.nixpkgs.follows = "nixpkgs";
     # };
-    jerrita.url = "github:jerrita/nur";
     # utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
   };
 
   outputs = { self, nixpkgs, jerrita } @ inputs: rec {
     nixosConfigurations.r2s = nixpkgs.lib.nixosSystem {
       system = "aarch64-linux";
-      specialArgs = { inherit nixpkgs; inherit jerrita; };
+      specialArgs = { inherit nixpkgs; };
       modules = [
         ./hardware/r2s.nix
         ./router
