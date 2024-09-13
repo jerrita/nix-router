@@ -2,7 +2,7 @@
   description = "Jerrita's Router Flake";
 
   nixConfig = {
-    experimental-features = [ "nix-command" "flakes" ];
+    experimental-features = ["nix-command" "flakes"];
     substituters = [
       "https://mirrors.ustc.edu.cn/nix-channels/store"
       "https://cache.nixos.org"
@@ -24,10 +24,13 @@
     # utils.url = "github:gytis-ivaskevicius/flake-utils-plus";
   };
 
-  outputs = { self, nixpkgs } @ inputs: rec {
+  outputs = {
+    self,
+    nixpkgs,
+  } @ inputs: rec {
     nixosConfigurations.r2s = nixpkgs.lib.nixosSystem {
       system = "aarch64-linux";
-      specialArgs = { inherit nixpkgs; };
+      specialArgs = {inherit nixpkgs;};
       modules = [
         ./hardware/r2s.nix
         ./router
@@ -37,12 +40,24 @@
 
     nixosConfigurations.esxi = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
-      specialArgs = { inherit nixpkgs; };
+      specialArgs = {inherit nixpkgs;};
       modules = [
         ./hardware/esxi.nix
         ./router
         # scripts.nixosModules.ddns
       ];
     };
+
+    nixosConfigurations.pve = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = {inherit nixpkgs;};
+      modules = [
+        ./hardware/pve.nix
+        ./router
+        # scripts.nixosModules.ddns
+      ];
+    };
+    formatter."aarch64-darwin" = nixpkgs.legacyPackages."aarch64-darwin".alejandra;
+    formatter."x86_64-linux" = nixpkgs.legacyPackages."x86_64-linux".alejandra;
   };
 }

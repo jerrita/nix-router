@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
 {
+  config,
+  pkgs,
+  ...
+}: {
   services.pppd = {
     enable = true;
     peers = {
@@ -10,7 +13,7 @@
           plugin pppoe.so wan
 
           nic-wan
-                
+
           name ""
           password ""
 

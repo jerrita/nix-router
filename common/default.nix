@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
 {
+  config,
+  pkgs,
+  ...
+}: {
   imports = [
     ./shell.nix
     ./programs.nix
@@ -10,4 +13,3 @@
     lg = "lazygit";
   };
 }
-

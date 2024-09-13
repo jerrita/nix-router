@@ -1,14 +1,18 @@
-{ pkgs, lib, modulesPath, proxmoxLXC, ... }:
 {
-  imports =
-    [
-      # Include the results of the hardware scan.
-      # (modulesPath + "/virtualisation/proxmox-lxc.nix")
-      ./hardware-configuration.nix
-    ];
+  pkgs,
+  lib,
+  modulesPath,
+  proxmoxLXC,
+  ...
+}: {
+  imports = [
+    # Include the results of the hardware scan.
+    # (modulesPath + "/virtualisation/proxmox-lxc.nix")
+    ./hardware-configuration.nix
+  ];
 
-  nix.settings.substituters = lib.mkForce [ "https://mirrors.ustc.edu.cn/nix-channels/store" ];
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.substituters = lib.mkForce ["https://mirrors.ustc.edu.cn/nix-channels/store"];
+  nix.settings.experimental-features = ["nix-command" "flakes"];
 
   # If you use the lxc, uncomment this
   boot.loader.systemd-boot.enable = true;

@@ -1,5 +1,9 @@
-{ config, pkgs, lib, ... }:
 {
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
   systemd.network.networks."30-wan" = lib.mkForce {
     matchConfig.Name = "wan";
     networkConfig = {

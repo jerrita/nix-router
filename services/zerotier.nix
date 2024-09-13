@@ -1,7 +1,10 @@
-{ config, pkgs, ... }:
 {
-    services.zerotierone = {
-        enable = false;
-        joinNetworks = [ "" ];
-    };
+  config,
+  pkgs,
+  ...
+}: {
+  services.zerotierone = {
+    enable = false;
+    joinNetworks = [""];
+  };
 }

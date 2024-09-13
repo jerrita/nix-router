@@ -1,23 +1,28 @@
-{ config, pkgs, lib, modulesPath, ... }:
 {
-  imports =
-    [ ./kernel.nix
-      
-      ./dial/dhcp.nix
+  config,
+  pkgs,
+  lib,
+  modulesPath,
+  ...
+}: {
+  imports = [
+    ./kernel.nix
 
-      ../common
-      ../networking
-      ../services
-      ../daemon
-    ];
+    ./dial/dhcp.nix
+
+    ../common
+    ../networking
+    ../services
+    ../daemon
+  ];
 
   boot.kernelPackages = lib.mkDefault pkgs.linuxPackages_latest;
 
   nix.settings = {
     experimental-features = ["nix-command" "flakes"];
     substituters = [
-        "https://mirrors.ustc.edu.cn/nix-channels/store"
-        "https://cache.nixos.org"
+      "https://mirrors.ustc.edu.cn/nix-channels/store"
+      "https://cache.nixos.org"
     ];
   };
 

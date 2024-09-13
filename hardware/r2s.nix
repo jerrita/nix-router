@@ -1,5 +1,8 @@
-{ pkgs, lib, ... }:
-let
+{
+  pkgs,
+  lib,
+  ...
+}: let
   tuningScript = pkgs.writeScript "tuning" ''
     #!/usr/bin/env bash
     # wan: 24, lan: 47
@@ -15,9 +18,7 @@ let
     ethtool -G lan rx 1024
     ethtool -G wan rx 4096
   '';
-
-in
-{
+in {
   imports = [
     # ../modules/extlinux.nix
     ../modules/r2s-image.nix
@@ -61,15 +62,15 @@ in
   nixpkgs.overlays = [
     (final: super: {
       zfs = super.zfs.overrideAttrs (_: {
-        meta.platforms = [ ];
+        meta.platforms = [];
       });
     })
   ];
 
   systemd.services.tuning = {
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network.target" ];
-    path = [ pkgs.bash pkgs.ethtool ];
+    wantedBy = ["multi-user.target"];
+    after = ["network.target"];
+    path = [pkgs.bash pkgs.ethtool];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = "${tuningScript}";
@@ -80,15 +81,16 @@ in
 
   # NanoPi R2S's DTS has not been actively updated, so just use the prebuilt one to avoid rebuilding
   hardware.deviceTree.package = pkgs.lib.mkForce (
-    pkgs.runCommand "dtbs-nanopi-r2s" { } ''
+    pkgs.runCommand "dtbs-nanopi-r2s" {} ''
       install -TDm644 ${./files/r2s-overclock.dtb} $out/rockchip/rk3328-nanopi-r2s.dtb
     ''
   );
 
   hardware.firmware = [
-    (pkgs.runCommand
+    (
+      pkgs.runCommand
       "linux-firmware-r8152"
-      { }
+      {}
       ''
         install -TDm644 ${./files/rtl8153a-4.fw} $out/lib/firmware/rtl_nic/rtl8153a-4.fw
         install -TDm644 ${./files/rtl8153b-2.fw} $out/lib/firmware/rtl_nic/rtl8153b-2.fw
@@ -106,7 +108,7 @@ in
       };
     };
 
-    supportedFilesystems = [ "ext4" "vfat" ];
+    supportedFilesystems = ["ext4" "vfat"];
     kernelParams = [
       "console=ttyS2,1500000"
       "earlycon=uart8250,mmio32,0xff130000"
@@ -115,7 +117,7 @@ in
     initrd = {
       includeDefaultModules = false;
     };
-    blacklistedKernelModules = [ "hantro_vpu" "drm" "lima" "videodev" ];
+    blacklistedKernelModules = ["hantro_vpu" "drm" "lima" "videodev"];
     tmp.useTmpfs = true;
   };
 
@@ -145,7 +147,7 @@ in
 
   systemd.services."wait-system-running" = {
     description = "Wait system running";
-    serviceConfig = { Type = "simple"; };
+    serviceConfig = {Type = "simple";};
     script = ''
       systemctl is-system-running --wait
     '';
@@ -153,10 +155,10 @@ in
 
   systemd.services."setup-net-leds" = {
     description = "Setup network LEDs";
-    serviceConfig = { Type = "simple"; };
-    wantedBy = [ "multi-user.target" ];
-    wants = [ "network-online.target" ];
-    after = [ "network-online.target" ];
+    serviceConfig = {Type = "simple";};
+    wantedBy = ["multi-user.target"];
+    wants = ["network-online.target"];
+    after = ["network-online.target"];
     script = ''
       cd /sys/class/leds/nanopi-r2s:green:lan
       echo netdev > trigger
@@ -171,12 +173,11 @@ in
   };
   systemd.services."setup-sys-led" = {
     description = "Setup booted LED";
-    requires = [ "wait-system-running.service" ];
-    after = [ "wait-system-running.service" ];
-    wantedBy = [ "multi-user.target" ];
+    requires = ["wait-system-running.service"];
+    after = ["wait-system-running.service"];
+    wantedBy = ["multi-user.target"];
     script = ''
       echo default-on > /sys/class/leds/nanopi-r2s:red:sys/trigger
     '';
   };
 }
-

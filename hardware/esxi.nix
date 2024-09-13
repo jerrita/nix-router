@@ -1,6 +1,11 @@
 # 37: lan, 33: wan
-{ config, lib, pkgs, modulesPath, ... }:
-let
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}: let
   tuningScript = pkgs.writeScript "tuning" ''
     #!/usr/bin/env bash
     mkdir -p /etc/clash
@@ -11,29 +16,29 @@ let
     fi
   '';
 in {
-  imports = [ ];
+  imports = [];
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  boot.initrd.availableKernelModules = [ "ata_piix" "vmw_pvscsi" "ahci" "sd_mod" "sr_mod" ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-amd" ];
+  boot.initrd.availableKernelModules = ["ata_piix" "vmw_pvscsi" "ahci" "sd_mod" "sr_mod"];
+  boot.initrd.kernelModules = [];
+  boot.kernelModules = ["kvm-amd"];
   # boot.extraModulePackages = with config.boot.kernelPackages; [ r8168 ];
   # boot.blacklistedKernelModules = [ "r8169" ];
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  fileSystems."/" =
-    { device = "/dev/disk/by-uuid/2d272700-f3bd-4a3b-9e77-08da2dd442a9";
-      fsType = "ext4";
-    };
+  fileSystems."/" = {
+    device = "/dev/disk/by-uuid/2d272700-f3bd-4a3b-9e77-08da2dd442a9";
+    fsType = "ext4";
+  };
 
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/DC66-AB97";
-      fsType = "vfat";
-    };
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-uuid/DC66-AB97";
+    fsType = "vfat";
+  };
 
-  swapDevices = [ ];
+  swapDevices = [];
 
   zramSwap = {
     enable = true;
@@ -48,12 +53,12 @@ in {
   };
 
   systemd.services.tuning = {
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network.target" ];
-    path = [ pkgs.bash ];
+    wantedBy = ["multi-user.target"];
+    after = ["network.target"];
+    path = [pkgs.bash];
     serviceConfig = {
-        Type = "oneshot";
-        ExecStart = "${tuningScript}";
+      Type = "oneshot";
+      ExecStart = "${tuningScript}";
     };
   };
 
@@ -62,13 +67,14 @@ in {
     #     matchConfig.PermanentMACAddress = "00:0c:29:85:39:93";
     #     linkConfig.Name = "wan";
     # };
-    "10-wan" = {   # Phy
-        matchConfig.PermanentMACAddress = "1c:83:41:40:c1:01";
-        linkConfig.Name = "wan";
+    "10-wan" = {
+      # Phy
+      matchConfig.PermanentMACAddress = "1c:83:41:40:c1:01";
+      linkConfig.Name = "wan";
     };
     "10-vmnet" = {
-        matchConfig.PermanentMACAddress = "00:0c:29:85:39:89";
-        linkConfig.Name = "lan";
+      matchConfig.PermanentMACAddress = "00:0c:29:85:39:89";
+      linkConfig.Name = "lan";
     };
     # "10-r8168" = {
     #     matchConfig.PermanentMACAddress = "1c:83:41:40:c1:00";
