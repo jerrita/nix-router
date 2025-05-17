@@ -53,7 +53,7 @@ in {
 
   systemd.network.links = {
     "10-wan" = {
-      matchConfig.PermanentMACAddress = "bc:24:11:69:9a:34";
+      matchConfig.PermanentMACAddress = "bc:24:11:8b:92:e3";
       linkConfig.Name = "wan";
     };
     "10-sci" = {
